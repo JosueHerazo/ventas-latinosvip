@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body, param} from "express-validator"
-import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/products"
+import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
 
 const router = Router()
@@ -18,8 +18,8 @@ router.post("/",
      body("price").isNumeric().withMessage("Valor no valido").notEmpty().withMessage("El valor del producto no ir vacio").custom(value => value > 0).withMessage("Precio no valido"),
      handlerInputErrors,
      body("barber").notEmpty().withMessage("El nombre del barbero no puede ir vacio"),
-     body("client").notEmpty().withMessage("El nombre del cliente no puede ir vacio"),
-     body("phone").isNumeric().withMessage("el numero del movil no puede ir vacio").notEmpty().withMessage("El valor del producto no ir vacio"),
+     body("date").notEmpty().withMessage("La fecha no puede ir vacio"),
+    
     createProduct
 )
 router.get("/:id",

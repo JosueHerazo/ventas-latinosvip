@@ -10,7 +10,7 @@ import db from "./config/db"
 async function connectDB() {
     try {
         await db.authenticate()
-        db.sync()
+        db.sync({alter: true})
         console.log(colors.bgBlue.white.bold("Conexion exitosa a la DB"))
         
     } catch (error) {
@@ -24,14 +24,14 @@ async function connectDB() {
 connectDB()
 //instancia de express
  const server = express()
-
-const corsOptions : CorsOptions = {
+const whitelist = [process.env.FRONTEND_URL_DATE, process.env.FRONTEND_URL];
+const corsOptionsDate : CorsOptions = {
     origin: function(origin, callback)  {
-       if(!origin || origin === process.env.FRONTEND_URL){
+       if(!origin || whitelist.includes(origin)){
         console.log(origin);
         callback(null, true)
     }else{
-           console.log("denegar");
+           console.log("denegar", origin);
         callback(null, false )        
        }
     }
@@ -40,14 +40,14 @@ const corsOptions : CorsOptions = {
 //   origin: "http://localhost:5173"
 // }))
 
-server.use(cors(corsOptions))
+server.use(cors(corsOptionsDate))
 //Leer datos de formulario del  req.body
 server.use(express.json())
 
 server.use(morgan("dev"))
 
 // use es un metodo que usa express para interactuar sobre los los metodos http del router
- server.use("/api/service", router)
+ server.use("/cita/cliente", router)
 
  export default server
 
