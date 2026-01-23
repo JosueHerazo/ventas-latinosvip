@@ -4,7 +4,7 @@ import Client from './Clients.models';
 @Table({
     tableName: 'dates'
 })
-class Date extends Model {
+class DateList extends Model {
     @Column({
         type: DataType.STRING(100),
         allowNull: false
@@ -28,7 +28,7 @@ class Date extends Model {
     // Mantenemos estas columnas si las usas directamente en el form 
     // aunque lo ideal es que vengan de la relación con Client
     @Column({
-        type: DataType.DATE()
+        type: DataType.STRING()
     })
     declare date: string;
     
@@ -46,4 +46,4 @@ class Date extends Model {
 
 // --- CORRECCIÓN AQUÍ ---
 
-export default Date;
+export default DateList;
