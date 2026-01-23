@@ -1,6 +1,6 @@
 // src/handlers/date.ts
 import { Request, Response } from 'express'
-import ListDate from '../models/Date.models'
+import ListDate from '../models/DateList.models'
 
 export const getProducts = async (req: Request, res: Response) => {
     try {
