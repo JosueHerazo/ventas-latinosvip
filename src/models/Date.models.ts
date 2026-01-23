@@ -12,7 +12,7 @@ class Date extends Model {
     declare service: string;
 
     @Column({
-        type: DataType.FLOAT, // O DECIMAL(10,2) para dinero
+        type: DataType.INTEGER(), // O DECIMAL(10,2) para dinero
         allowNull: false
     })
     declare price: number;
