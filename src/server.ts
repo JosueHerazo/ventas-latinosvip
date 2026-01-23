@@ -65,7 +65,7 @@ server.use(morgan("dev"))
 // <<<<<<< HEAD
 //  server.use("/cita/cliente", router)
 
- server.use("api/service", router)
+ server.use("/api/service", router)
 
  
 
