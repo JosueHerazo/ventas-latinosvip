@@ -34,9 +34,9 @@ class Service extends Model {
     declare client: string;
 
     @Column({
-        type: DataType.STRING(20)
+        type: DataType.NUMBER()
     })
-    declare phone: string;
+    declare phone: number;
     @ForeignKey(() => Client)
     @Column({
         type: DataType.INTEGER,
