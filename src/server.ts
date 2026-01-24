@@ -24,10 +24,13 @@ connectDB()
  const server = express()
 
 
+
 const whitelist = [
   process.env.FRONTEND_URL,
-  "https://ventas-latinosvip-frontend-nu.vercel.app" // Agrégala manualmente por si acaso
-];
+  "https://ventas-latinosvip-frontend-nu.vercel.app" ,
+ 
+process.env.FRONTEND_URL_DATE,"https://citas-frontend-njc4.vercel.app"
+]; 
 
 const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
@@ -35,6 +38,8 @@ const corsOptions: CorsOptions = {
     callback(null, true); 
   }
 };
+
+server.use(cors(corsOptions));
 
 server.use(cors(corsOptions));
 
