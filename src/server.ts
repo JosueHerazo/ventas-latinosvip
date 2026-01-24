@@ -28,23 +28,22 @@ connectDB()
 //   process.env.FRONTEND_URL_DATE,
   
 // ];
+const whitelist = [
+  "https://ventas-latinosvip-frontend-nu.vercel.app", // Tu URL actual
+  "https://citas-frontend-njc4.vercel.app",
+  "http://localhost:5173" // Para desarrollo local
+];
 
 const corsOptions: CorsOptions = {
-  origin: function(origin, callback) {
-    // Definir los dominios permitidos
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      process.env.FRONTEND_URL_DATE,
-      "http://localhost:5173" // Asegúrate de incluir tu local de Vite
-    ];
-
-    if (!origin || allowedOrigins.includes(origin)) {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("No permitido por CORS"));
+      callback(new Error("Error de CORS: Origen no permitido"));
     }
   }
 };
+
 
 server.use(cors(corsOptions))
 server.use(express.json())
