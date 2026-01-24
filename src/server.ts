@@ -29,9 +29,8 @@ connectDB()
   
 // ];
 const whitelist = [
-  "https://ventas-latinosvip-frontend-nu.vercel.app", // Tu URL actual
-  "https://citas-frontend-njc4.vercel.app",
-  "http://localhost:5173" // Para desarrollo local
+  process.env.FRONTEND_URL, // Tu URL actual
+  // Para desarrollo local
 ];
 
 const corsOptions: CorsOptions = {
