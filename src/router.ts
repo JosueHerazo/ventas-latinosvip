@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body, param} from "express-validator"
-import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/date"
+import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/service"
 import { handlerInputErrors } from "./middleware"
 
 const router = Router()
