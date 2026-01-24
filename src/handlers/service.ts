@@ -1,17 +1,19 @@
 import { Request, Response } from 'express'
 import Service from '../models/service.model'
+import Client from '../models/Clients.models'
 
 export const getProducts = async (req: Request, res: Response) => {
 
     try {
-        const date = await Service.findAll({
+        const service = await Service.findAll({
             order: [
                 ["createdAt", "DESC"]
             ],
-            attributes: {exclude: ["updatedAt", ]}
+            attributes: {exclude: ["updatedAt", ]}, 
+            include: [Client]
         })
         
-        res.json({data:date})
+        res.json({data:service})
     } catch (error) {
         console.log(error);
         
@@ -22,8 +24,8 @@ export const getProducts = async (req: Request, res: Response) => {
 export const createProduct = async  (req: Request, res: Response) =>{
     
     try {
-        const date = await Service.create(req.body)
-        res.json({data: date})
+        const service = await Service.create(req.body)
+        res.json({data: service})
         
     } catch (error) {   
         console.log(error);
@@ -35,15 +37,15 @@ export const createProduct = async  (req: Request, res: Response) =>{
 export const getProductById = async (req:Request, res: Response) => {
     try {
         const {id} = req.params
-        const date = await Service.findByPk(id)
+        const service = await Service.findByPk(id)
        
-        if(!date) {
+        if(!service) {
             return res.status(404).json({
                 error: "Producto No Encontrado"
             })
         }
         // siempre hay que responder la data 
-        res.json({data: date})
+        res.json({data: service})
     } catch (error) {
         console.log(error);
         

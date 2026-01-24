@@ -22,19 +22,23 @@ async function connectDB() {
 }
 connectDB();
 const server = (0, express_1.default)();
-const corsOptionsDate = {
+// const whitelist = [
+//   process.env.FRONTEND_URL, 
+//   process.env.FRONTEND_URL_DATE,
+// ];
+const corsOptions = {
     origin: function (origin, callback) {
+        // Si el origen está en la lista o no existe (como Postman)
         if (!origin || process.env.FRONTEND_URL.includes(origin)) {
-            console.log(origin);
             callback(null, true);
         }
         else {
-            console.log("denegar", origin);
-            callback(null, false);
+            console.log("Acceso denegado por CORS para:", origin);
+            callback(new Error("No permitido por CORS"));
         }
     }
 };
-server.use((0, cors_1.default)(corsOptionsDate));
+server.use((0, cors_1.default)(corsOptions));
 server.use(express_1.default.json());
 server.use((0, morgan_1.default)("dev"));
 server.use("/api/service", router_1.default);

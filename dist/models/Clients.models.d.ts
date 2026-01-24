@@ -1,5 +1,5 @@
 import { Model } from 'sequelize-typescript';
-import Date from './Date.models';
+import Date from './DateList.models';
 declare class Client extends Model {
     name: string;
     password: number;
