@@ -23,26 +23,20 @@ async function connectDB() {
 connectDB()
  const server = express()
 
-// const whitelist = [
-//   process.env.FRONTEND_URL, 
-//   process.env.FRONTEND_URL_DATE,
-  
-// ];
+
 const whitelist = [
-  process.env.FRONTEND_URL, // Tu URL actual
-  // Para desarrollo local
+  process.env.FRONTEND_URL,
+  "https://ventas-latinosvip-frontend-nu.vercel.app" // Agrégala manualmente por si acaso
 ];
 
 const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Error de CORS: Origen no permitido"));
-    }
+    // Si quieres que funcione SÍ O SÍ ahora mismo:
+    callback(null, true); 
   }
 };
 
+server.use(cors(corsOptions));
 
 server.use(cors(corsOptions))
 server.use(express.json())

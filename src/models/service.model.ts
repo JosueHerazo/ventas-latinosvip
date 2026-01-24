@@ -47,6 +47,6 @@ class Service extends Model {
     @BelongsTo(() => Client)
     declare clientData: Client;
 }
- // --- CORRECCIÓN AQUÍ ---
+// --- CORRECCIÓN AQUÍ ---
 
 export default Service;
