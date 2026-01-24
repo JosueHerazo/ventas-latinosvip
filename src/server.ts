@@ -31,11 +31,16 @@ connectDB()
 
 const corsOptions: CorsOptions = {
   origin: function(origin, callback) {
-    // Si el origen está en la lista o no existe (como Postman)
-    if (!origin || process.env.FRONTEND_URL.includes(origin)) {
+    // Definir los dominios permitidos
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL_DATE,
+      "http://localhost:5173" // Asegúrate de incluir tu local de Vite
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("Acceso denegado por CORS para:", origin);
       callback(new Error("No permitido por CORS"));
     }
   }

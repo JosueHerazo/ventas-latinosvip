@@ -33,10 +33,10 @@ class Service extends Model {
     })
     declare client: string;
 
-  @Column({
-    type: DataType.BIGINT // Use BIGINT because phone numbers exceed standard INTEGER limits
-})
-phone: number
+    @Column({
+        type: DataType.BIGINT() // Use BIGINT because phone numbers exceed standard INTEGER limits
+    })
+    declare phone: number
     @ForeignKey(() => Client)
     @Column({
         type: DataType.INTEGER(),
