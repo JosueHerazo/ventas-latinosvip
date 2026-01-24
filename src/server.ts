@@ -23,16 +23,16 @@ async function connectDB() {
 connectDB()
  const server = express()
 
-const whitelist = [
-  process.env.FRONTEND_URL, 
-  process.env.FRONTEND_URL_DATE,
+// const whitelist = [
+//   process.env.FRONTEND_URL, 
+//   process.env.FRONTEND_URL_DATE,
   
-];
+// ];
 
 const corsOptions: CorsOptions = {
   origin: function(origin, callback) {
     // Si el origen está en la lista o no existe (como Postman)
-    if (!origin || whitelist.includes(origin)) {
+    if (!origin || process.env.FRONTEND_URL.includes(origin)) {
       callback(null, true);
     } else {
       console.log("Acceso denegado por CORS para:", origin);
