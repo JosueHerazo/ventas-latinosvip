@@ -27,7 +27,7 @@ class DateList extends Model {
    @Column({
         type: DataType.DATE()
     })
-    declare dateList: string;
+    declare dateList: Date;
     
    @Column({
         type: DataType.STRING()
@@ -35,7 +35,7 @@ class DateList extends Model {
     declare client: string;
     
    @Column({
-        type: DataType.NUMBER()
+        type: DataType.BIGINT()
     })
     declare phone: number;
     
