@@ -23,12 +23,9 @@ class DateList extends Model {
     })
     declare barber: string;
     
-    // -----------------------
     
-    // Mantenemos estas columnas si las usas directamente en el form 
-    // aunque lo ideal es que vengan de la relación con Client
    @Column({
-        type: DataType.STRING(100)
+        type: DataType.STRING()
     })
     declare dateList: string;
     
