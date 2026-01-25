@@ -27,10 +27,10 @@ class DateList extends Model {
     
     // Mantenemos estas columnas si las usas directamente en el form 
     // aunque lo ideal es que vengan de la relación con Client
-    @Column({
-        type: DataType.STRING()
+   @Column({
+        type: DataType.STRING(100)
     })
-    declare date: string;
+    declare dateList: string;
     
     // --- AGREGA ESTO PARA ARREGLAR EL ERROR ---
     @ForeignKey(() => Client)
