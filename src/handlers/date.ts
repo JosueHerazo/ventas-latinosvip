@@ -5,7 +5,13 @@ import Datelist from "../models/DateList.models"
 
 export const getProducts = async (req: Request, res: Response) => {
     try {
-        const dateslist = await Datelist.findAll()
+        const dateslist = await Datelist.findAll({
+            order: [
+                ["createdAt", "DESC"]
+            ],
+            attributes: {exclude: ["updatedAt", ]}, 
+            
+        })
         res.json({ data: dateslist })
     } catch (error) {
         console.log(error)
