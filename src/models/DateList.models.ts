@@ -1,5 +1,5 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
-import Client from './Clients.models';
+// import Client from './Clients.models';
 
 @Table({
     tableName: 'dates'
@@ -27,7 +27,7 @@ class DateList extends Model {
    @Column({
         type: DataType.DATE()
     })
-    declare dateList: Date;
+    declare date: Date;
     
    @Column({
         type: DataType.STRING()

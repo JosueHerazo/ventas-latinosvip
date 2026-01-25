@@ -38,6 +38,7 @@ class Service extends Model {
     })
     declare phone: number
     @ForeignKey(() => Client)
+    
     @Column({
         type: DataType.INTEGER(),
         allowNull: true // Permite servicios sin cliente si fuera necesario

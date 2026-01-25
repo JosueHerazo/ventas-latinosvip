@@ -18,9 +18,12 @@ router.post("/",
      body("price").isNumeric().withMessage("Valor no valido").notEmpty().withMessage("El valor del producto no ir vacio").custom(value => value > 0).withMessage("Precio no valido"),
      handlerInputErrors,
      body("barber").notEmpty().withMessage("El nombre del barbero no puede ir vacio"),
-     body("dateList").notEmpty().withMessage("La fecha no puede ir vacio"),
-    
+     body("date").notEmpty().withMessage("La fecha no puede ir vacio"),
+       body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
+     body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
     createProduct
+    
+    
 )
 router.get("/:id",
     param("id").isInt().withMessage("ID no valido"),
