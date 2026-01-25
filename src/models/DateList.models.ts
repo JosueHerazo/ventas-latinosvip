@@ -26,7 +26,7 @@ class DateList extends Model {
     
    @Column({
         type: DataType.DATE(),
-        field: 'dateList'
+       
     })
     declare dateList: Date;
     
