@@ -1,5 +1,5 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
-// import Client from './Clients.models';
+import Client from './Clients.models';
 
 @Table({
     tableName: 'dates'
@@ -40,17 +40,17 @@ class DateList extends Model {
     declare phone: number;
     
     // --- AGREGA ESTO PARA ARREGLAR EL ERROR ---
+    @ForeignKey(() => Client)
+    @Column({
+        type: DataType.INTEGER
+    })
+    declare clientId: number;
+    
+    @BelongsTo(() => Client)
+    declare clientName: Client;
     
     
 }
 // --- CORRECCIÓN AQUÍ ---
 
 export default DateList;
-// @ForeignKey(() => Client)
-// @Column({
-//     type: DataType.INTEGER
-// })
-// declare clientId: number;
-
-// @BelongsTo(() => Client)
-// declare client: Client;
