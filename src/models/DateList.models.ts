@@ -25,22 +25,32 @@ class DateList extends Model {
     
     
    @Column({
-        type: DataType.STRING()
+        type: DataType.DATE()
     })
     declare dateList: string;
     
-    // --- AGREGA ESTO PARA ARREGLAR EL ERROR ---
-    @ForeignKey(() => Client)
-    @Column({
-        type: DataType.INTEGER
+   @Column({
+        type: DataType.STRING()
     })
-    declare clientId: number;
+    declare client: string;
     
-    @BelongsTo(() => Client)
-    declare client: Client;
-    }
+   @Column({
+        type: DataType.NUMBER()
+    })
+    declare phone: number;
     
-
+    // --- AGREGA ESTO PARA ARREGLAR EL ERROR ---
+    
+    
+}
 // --- CORRECCIÓN AQUÍ ---
 
 export default DateList;
+// @ForeignKey(() => Client)
+// @Column({
+//     type: DataType.INTEGER
+// })
+// declare clientId: number;
+
+// @BelongsTo(() => Client)
+// declare client: Client;
