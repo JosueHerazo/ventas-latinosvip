@@ -1,7 +1,9 @@
 import { Router } from "express"
 import { body, param} from "express-validator"
-import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/service"
+import { archivarSemana, createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/service"
 import { handlerInputErrors } from "./middleware"
+import Service from "./models/service.model"
+import WeeklyClosing from "./models/models/WeeklyClosing"
 
 const router = Router()
 
@@ -23,6 +25,7 @@ router.post("/",
     
     createProduct
 )
+router.post('/api/cierres', archivarSemana);
 router.get("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,

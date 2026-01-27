@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import Service from '../models/service.model'
 import Client from '../models/Clients.models'
+import WeeklyClosing from '../models/models/WeeklyClosing'
 
 export const getProducts = async (req: Request, res: Response) => {
 
@@ -140,8 +141,36 @@ export const deleteProduct = async (req: Request, res: Response) => {
     }
 
 }
+export const archivarSemana = async (req : Request, res : Response) => {
+    const { barbero, totalBruto, comision50, serviciosArchivados } = req.body;
 
+    // 1. Guardar el resumen histórico
+    await WeeklyClosing.create({
+        barber: barbero,
+        totalGross: totalBruto,
+        commission: comision50,
+        servicesCount: serviciosArchivados.length,
+        archivedServiceIds: serviciosArchivados.join(',')
+    });
 
+    // 2. Marcar servicios como pagados para que "desaparezcan" del resumen actual
+    await Service.update({ isPaid: true }, {
+        where: { id: serviciosArchivados }
+    });
+
+    res.json({ msg: "Cierre completado con éxito" });
+}
+
+// En tu controlador de servicios (ej. getServices)
+export const getActiveServices = async (req : Request, res : Response   ) => {
+    const services = await Service.findAll({
+        where: {
+            isPaid: false // <--- CLAVE: Solo traemos lo que NO se ha pagado aún
+        },
+        order: [['createdAt', 'DESC']]
+    });
+    res.json(services);
+};
 
 
 
