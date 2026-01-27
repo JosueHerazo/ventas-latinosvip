@@ -8,7 +8,7 @@ import routerDates from "./routerDates"
 async function connectDB() {
     try {
         await db.authenticate()
-        db.sync({alter: true})
+        db.sync()
         console.log("Conexion exitosa a la DB")
     } catch (error) {
         console.log("Hubo un error al conectar a la DB");
