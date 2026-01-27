@@ -14,7 +14,6 @@ router.get("/",
 router.post("/",
     //validacion
      body("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"),
-     
      body("price").isNumeric().withMessage("Valor no valido").notEmpty().withMessage("El valor del producto no ir vacio").custom(value => value > 0).withMessage("Precio no valido"),
      handlerInputErrors,
      body("barber").notEmpty().withMessage("El nombre del barbero no puede ir vacio"),

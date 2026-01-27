@@ -37,6 +37,12 @@ class Service extends Model {
         type: DataType.BIGINT() // Use BIGINT because phone numbers exceed standard INTEGER limits
     })
     declare phone: number
+    // Dentro de tu modelo Service actual, añade:
+@Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false // Por defecto, un servicio nuevo NO está pagado al barbero
+})
+declare isPaid: boolean;
 
     @ForeignKey(() => Client)
     @Column({
