@@ -141,25 +141,55 @@ export const deleteProduct = async (req: Request, res: Response) => {
     }
 
 }
-export const archivarSemana = async (req : Request, res : Response) => {
-    const { barbero, totalBruto, comision50, serviciosArchivados } = req.body;
+// En tu controlador de Express
 
-    // 1. Guardar el resumen histórico
-    await WeeklyClosing.create({
-        barber: barbero,
-        totalGross: totalBruto,
-        commission: comision50,
-        servicesCount: serviciosArchivados.length,
-        archivedServiceIds: serviciosArchivados.join(',')
-    });
+// 1. Marcar una cita como pagada (Liquidar cobro individual)
+export const markAsPaid = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const service = await Service.findByPk(id);
 
-    // 2. Marcar servicios como pagados para que "desaparezcan" del resumen actual
-    await Service.update({ isPaid: true }, {
-        where: { id: serviciosArchivados }
-    });
+        if (!service) {
+            return res.status(404).json({ error: "Servicio no encontrado" });
+        }
 
-    res.json({ msg: "Cierre completado con éxito" });
+        // Marcamos como pagado
+        service.isPaid = true;
+        await service.save();
+
+        res.json({ data: service });
+    } catch (error) {
+        res.status(500).json({ error: "Error al procesar el pago" });
+    }
+};
+
+// 2. Archivar la semana (Cierre total del barbero)
+export const archivarSemana = async (req: Request, res: Response) => {
+    try {
+        const { barbero, totalBruto, comision50, serviciosArchivados } = req.body;
+
+        // Guardar el resumen histórico
+        await WeeklyClosing.create({
+            barber: barbero,
+            totalGross: totalBruto,
+            commission: comision50,
+            servicesCount: serviciosArchivados.length,
+            archivedServiceIds: serviciosArchivados.join(',')
+        });
+
+        // IMPORTANTE: En lugar de isArchived, usaremos un campo isSettled (Liquidado con barbero)
+        // o simplemente filtramos por fecha en el futuro. 
+        // Si prefieres usar isArchived, asegúrate de que esté en tu modelo de Sequelize.
+        await Service.update({ isArchived: true }, {
+            where: { id: serviciosArchivados }
+        });
+
+        res.json({ msg: "Cierre completado con éxito" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al archivar la semana" });
+    }
 }
+
 
 // En tu controlador de servicios (ej. getServices)
 export const getActiveServices = async (req : Request, res : Response   ) => {
