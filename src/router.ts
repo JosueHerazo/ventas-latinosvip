@@ -2,8 +2,7 @@ import { Router } from "express"
 import { body, param} from "express-validator"
 import { archivarSemana, createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/service"
 import { handlerInputErrors } from "./middleware"
-import Service from "./models/service.model"
-import WeeklyClosing from "./models/models/WeeklyClosing"
+import { updateAppointmentStatus } from "./handlers/date"
 
 const router = Router()
 
@@ -34,7 +33,7 @@ router.get("/:id",
 router.put("/:id", 
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
-    UpdateProduct)
+    updateAppointmentStatus)
 // CON PATCH SE PUEDE MODIFICAR PARTES DEL OBJETO SIN QUE MODIFIQUE LAS DEMAS PARTES DEL OBJETO
 
 // con patch se envie la disponibilidad del product solo se toma del dataValue pel producto para motificar el boolean de true a false
