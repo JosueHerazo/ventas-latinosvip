@@ -38,7 +38,6 @@ export const updateAppointmentStatus = async (req: Request, res: Response) => {
         if (appointment) {
             // Cambiamos el estado a pagado
             await appointment.update({ isPaid: true }); 
-            appointment.save()
             res.json({ data: appointment });
         }
     } catch (error) {
