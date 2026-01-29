@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body, param} from "express-validator"
-import { archivarSemana, createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/service"
+import { archivarSemana, createProduct, deleteProduct, getProductById, getProducts, updateAvailability } from "./handlers/service"
 import { handlerInputErrors } from "./middleware"
 import { updateAppointmentStatus } from "./handlers/date"
 

@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body, param} from "express-validator"
-import { createProduct, deleteProduct, getProductById, getProducts, updateAvailability, UpdateProduct } from "./handlers/date"
+import { createProduct, deleteProduct, getProductById, getProducts, updateAppointmentStatus, UpdateProduct } from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
 
 const router = Router()
@@ -39,7 +39,7 @@ router.put("/:id",
 router.patch("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
-    updateAvailability)
+    updateAppointmentStatus)
 
 router.delete("/:id",  
     param("id").isInt().withMessage("ID no valido"),
