@@ -39,10 +39,22 @@ __decorate([
 ], DateList.prototype, "barber", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(),
+    }),
+    __metadata("design:type", String)
+], DateList.prototype, "dateList", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
         type: sequelize_typescript_1.DataType.STRING()
     }),
     __metadata("design:type", String)
-], DateList.prototype, "date", void 0);
+], DateList.prototype, "client", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.BIGINT()
+    }),
+    __metadata("design:type", Number)
+], DateList.prototype, "phone", void 0);
 __decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => Clients_models_1.default),
     (0, sequelize_typescript_1.Column)({
@@ -53,7 +65,7 @@ __decorate([
 __decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => Clients_models_1.default),
     __metadata("design:type", Clients_models_1.default)
-], DateList.prototype, "client", void 0);
+], DateList.prototype, "clientName", void 0);
 DateList = __decorate([
     (0, sequelize_typescript_1.Table)({
         tableName: 'dates'

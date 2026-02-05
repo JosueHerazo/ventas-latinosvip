@@ -4,8 +4,10 @@ declare class DateList extends Model {
     service: string;
     price: number;
     barber: string;
-    date: string;
+    dateList: string;
+    client: string;
+    phone: number;
     clientId: number;
-    client: Client;
+    clientName: Client;
 }
 export default DateList;

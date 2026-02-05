@@ -5,3 +5,6 @@ export declare const getProductById: (req: Request, res: Response) => Promise<Re
 export declare const UpdateProduct: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const updateAvailability: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const deleteProduct: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const markAsPaid: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const archivarSemana: (req: Request, res: Response) => Promise<void>;
+export declare const getActiveServices: (req: Request, res: Response) => Promise<void>;
