@@ -22,7 +22,7 @@ const server = express()
 const whitelist = [
     process.env.FRONTEND_URL, // Asegúrate que en Render esto sea https://ventas-latinosvip-frontend-nu.vercel.app
     process.env.FRONTEND_URL_DATE,
-    undefined // Permite herramientas de testing
+"https://localhost:5173"
 ];
 
 const corsOptions: CorsOptions = {
