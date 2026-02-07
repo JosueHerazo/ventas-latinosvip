@@ -13,11 +13,11 @@ class Client extends Model {
     declare name: string;
 
     @Column({
-        type: DataType.INTEGER(), // Guardamos como string para evitar problemas de ceros iniciales
+        type: DataType.STRING(), // Guardamos como string para evitar problemas de ceros iniciales
         allowNull: false,
         unique: true
     })
-    declare password: number;
+    declare password: string;
     @Column({
         type: DataType.STRING(), // Guardamos como string para evitar problemas de ceros iniciales
         allowNull: false,
