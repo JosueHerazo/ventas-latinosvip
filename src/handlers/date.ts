@@ -1,5 +1,41 @@
 import { Request, Response } from "express"
 import Datelist from "../models/DateList.models"
+import Client from "../models/Clients.models"
+import DateList from "../models/DateList.models"
+
+
+
+export const getProducts = async (req: Request, res: Response) => {
+
+    try {
+        const service = await DateList.findAll({
+            order: [
+                ["createdAt", "DESC"]
+            ],
+            attributes: {exclude: ["updatedAt", ]}, 
+            include: [Client]
+        })
+        
+        res.json({data:service})
+    } catch (error) {
+        console.log(error);
+        
+    }
+
+}
+
+export const createProduct = async  (req: Request, res: Response) =>{
+    
+    try {
+        const service = await DateList.create(req.body)
+        res.json({data: service})
+        
+    } catch (error) {   
+        console.log(error);
+        
+        
+    }
+}
 
 // Obtener una cita por ID (Para el loader de edición)
 export const getProductById = async (req: Request, res: Response) => {

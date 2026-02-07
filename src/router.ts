@@ -13,13 +13,17 @@ router.get("/",
 router.post("/",
     //validacion
      body("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"),
-     
-     body("price").isNumeric().withMessage("Valor no valido").notEmpty().withMessage("El valor del producto no ir vacio").custom(value => value > 0).withMessage("Precio no valido"),
-     handlerInputErrors,
-     body("barber").notEmpty().withMessage("El nombre del barbero no puede ir vacio"),
-     body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
-     body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
-    
+    body("price")
+    .notEmpty().withMessage("El valor del producto no puede ir vacio")
+    .isNumeric().withMessage("El precio debe ser un número")
+    .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"),
+    handlerInputErrors,
+    body("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(),
+    body("dateList").notEmpty().withMessage("La fecha no puede ir vacio"),
+    body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
+    body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
+    body("duration").isNumeric().notEmpty().withMessage("tiempo de service"),
+    handlerInputErrors,
     createProduct
 )
 router.post('/api/cierres', archivarSemana);

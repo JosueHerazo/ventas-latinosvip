@@ -33,7 +33,6 @@ class Client extends Model {
     @Column({
         type: DataType.BOOLEAN(), // Guardamos como string para evitar problemas de ceros iniciales
         allowNull: false,
-        unique: true
     })
     declare terms: boolean;
 
