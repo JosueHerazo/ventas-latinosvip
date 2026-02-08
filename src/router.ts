@@ -19,11 +19,9 @@ router.post("/",
     .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"),
     handlerInputErrors,
     body("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(),
-    body("dateList").notEmpty().withMessage("La fecha no puede ir vacio"),
     body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
     body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
-    body("duration").isNumeric().notEmpty().withMessage("tiempo de service"),
-    handlerInputErrors,
+
     createProduct
 )
 router.post('/api/cierres', archivarSemana);
