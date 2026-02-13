@@ -20,7 +20,7 @@ router.post("/",
     handlerInputErrors,
     body("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(),
     body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
-    body("phone").isString().notEmpty().withMessage("El telefono no puede ir vacio"),
+    body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
     createProduct
 )
 router.post('/api/cierres', archivarSemana);
