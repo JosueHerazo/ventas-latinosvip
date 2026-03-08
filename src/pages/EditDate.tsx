@@ -1,25 +1,19 @@
+import { useState } from "react"
 import { Form, useActionData, type ActionFunctionArgs, redirect, 
          type LoaderFunctionArgs, useLoaderData, Link } from "react-router-dom"
+import { motion, AnimatePresence } from "framer-motion"
 import ErrorMessaje from "../componenents/ErrorMessaje"
 import { getDatesList, updateDate } from "../services/serviceDate"
 import type { DateList } from "../types"
-import { motion } from "framer-motion"
 
 const INITIAL_SERVICES = [
-    { nombre: "Corte", precio: 13 },
-    { nombre: "Corte con cejas", precio: 15 },
-    { nombre: "Corte con barba", precio: 18 },
-    { nombre: "Corte Vip", precio: 25 },
-    { nombre: "Barba", precio: 8 },
-    { nombre: "Barba VIP", precio: 11 },
-    { nombre: "Cejas", precio: 5 },
-    { nombre: "Mechas", precio: 30 },
-    { nombre: "Tinte", precio: 30 },
-    { nombre: "Trenzas", precio: 20 },
-    { nombre: "Mask Carbon", precio: 3 },
-    { nombre: "Limpieza Facial", precio: 15 },
-    { nombre: "Diseño", precio: 3 },
-    { nombre: "Lavado de Cabello", precio: 2 },
+    { nombre: "Corte", precio: 13 }, { nombre: "Corte con cejas", precio: 15 },
+    { nombre: "Corte con barba", precio: 18 }, { nombre: "Corte Vip", precio: 25 },
+    { nombre: "Barba", precio: 8 }, { nombre: "Barba VIP", precio: 11 },
+    { nombre: "Cejas", precio: 5 }, { nombre: "Mechas", precio: 30 },
+    { nombre: "Tinte", precio: 30 }, { nombre: "Trenzas", precio: 20 },
+    { nombre: "Mask Carbon", precio: 3 }, { nombre: "Limpieza Facial", precio: 15 },
+    { nombre: "Diseño", precio: 3 }, { nombre: "Lavado de Cabello", precio: 2 },
     { nombre: "Otros", precio: 0 },
 ]
 const INITIAL_BARBERS = ["Josue", "Bryan"]
@@ -47,23 +41,44 @@ export default function EditDate() {
     const cita = useLoaderData() as DateList
     const error = useActionData() as string
 
-    // ✅ Lee del mismo localStorage que NewService
-    const barberos: string[] = JSON.parse(
-        localStorage.getItem("barberos_barber") || "null"
-    ) ?? INITIAL_BARBERS
+    // ✅ Estado barberos — mismo localStorage que NewService
+    const [barberos, setBarberos] = useState<string[]>(() => {
+        const saved = localStorage.getItem("barberos_barber")
+        return saved ? JSON.parse(saved) : INITIAL_BARBERS
+    })
 
-    const servicios: { nombre: string, precio: number }[] = JSON.parse(
-        localStorage.getItem("servicios_barber") || "null"
-    ) ?? INITIAL_SERVICES
+    const [servicios, setServicios] = useState<{ nombre: string, precio: number }[]>(() => {
+        const saved = localStorage.getItem("servicios_barber")
+        return saved ? JSON.parse(saved) : INITIAL_SERVICES
+    })
 
-    // ✅ Convierte dateList a formato "YYYY-MM-DDTHH:mm" para datetime-local
+    const [showAdmin, setShowAdmin] = useState(false)
+
+    const guardarBarberos = (nuevos: string[]) => {
+        setBarberos(nuevos)
+        localStorage.setItem("barberos_barber", JSON.stringify(nuevos))
+    }
+
+    const guardarServicios = (nuevos: { nombre: string, precio: number }[]) => {
+        setServicios(nuevos)
+        localStorage.setItem("servicios_barber", JSON.stringify(nuevos))
+    }
+
+    const handleAddBarber = () => {
+        const nombre = prompt("Nombre del nuevo barbero:")
+        if (nombre) guardarBarberos([...barberos, nombre])
+    }
+
+    const handleAddService = () => {
+        const nombre = prompt("Nombre del servicio:")
+        const precio = prompt("Precio del servicio:")
+        if (nombre && precio) guardarServicios([...servicios, { nombre, precio: Number(precio) }])
+    }
+
     const formatDateForInput = (dateStr: string) => {
         if (!dateStr) return ""
-        try {
-            return new Date(dateStr).toISOString().slice(0, 16)
-        } catch {
-            return dateStr.slice(0, 16)
-        }
+        try { return new Date(dateStr).toISOString().slice(0, 16) }
+        catch { return dateStr.slice(0, 16) }
     }
 
     return (
@@ -72,16 +87,83 @@ export default function EditDate() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-10 max-w-lg mx-auto bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl"
         >
-            <h2 className="text-3xl font-black text-amber-500 uppercase italic mb-6 text-center">
-                Editar <span className="text-white">Cita</span>
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-black text-amber-500 uppercase italic">
+                    Editar <span className="text-white">Cita</span>
+                </h2>
+                <button
+                    type="button"
+                    onClick={() => setShowAdmin(!showAdmin)}
+                    className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-full hover:text-amber-500 transition-colors"
+                >
+                    {showAdmin ? "Cerrar Ajustes" : "⚙️ Ajustes"}
+                </button>
+            </div>
+
+            {/* PANEL DE AJUSTES */}
+            <AnimatePresence>
+                {showAdmin && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden mb-6 space-y-4 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800"
+                    >
+                        {/* Barberos */}
+                        <div>
+                            <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Barberos</p>
+                            <div className="flex flex-wrap gap-2">
+                                {barberos.map((b) => (
+                                    <button
+                                        key={b}
+                                        type="button"
+                                        onClick={() => guardarBarberos(barberos.filter(x => x !== b))}
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                                    >
+                                        {b} ✕
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={handleAddBarber}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
+                                >
+                                    + Nuevo
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Servicios */}
+                        <div>
+                            <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Servicios</p>
+                            <div className="flex flex-wrap gap-2">
+                                {servicios.map((s) => (
+                                    <button
+                                        key={s.nombre}
+                                        type="button"
+                                        onClick={() => guardarServicios(servicios.filter(x => x.nombre !== s.nombre))}
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                                    >
+                                        {s.nombre} (${s.precio}) ✕
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={handleAddService}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
+                                >
+                                    + Nuevo
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" className="flex flex-col gap-5">
-
                 <div className="grid grid-cols-2 gap-4">
-                    {/* ✅ Barberos desde localStorage */}
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Barbero</label>
                         <select name="barber" defaultValue={cita.barber}
@@ -89,8 +171,6 @@ export default function EditDate() {
                             {barberos.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
                     </div>
-
-                    {/* ✅ FIX: name="dateList" y type="datetime-local" con valor formateado */}
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Fecha y Hora</label>
                         <input
@@ -102,7 +182,6 @@ export default function EditDate() {
                     </div>
                 </div>
 
-                {/* ✅ Servicios desde localStorage */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Servicio</label>
@@ -135,12 +214,9 @@ export default function EditDate() {
                     className="mt-4 bg-amber-600 hover:bg-amber-500 p-4 text-black font-black rounded-xl uppercase transition-all shadow-lg active:scale-95">
                     Actualizar Cita ✓
                 </button>
-
                 <Link to="/lista/citas"
                     className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
                     Volver a Citas
                 </Link>
             </Form>
         </motion.div>
-    )
-}
