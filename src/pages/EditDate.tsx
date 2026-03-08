@@ -118,17 +118,6 @@ export default function EditDate() {
                     </div>
                 </div>
 
-                <div className="space-y-1">
-                    <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Duración (min)</label>
-                    <select name="duration" defaultValue={cita.duration}
-                        className="w-full font-bold text-white rounded-xl p-3 bg-zinc-900 border border-zinc-800 appearance-none">
-                        <option value={15}>15 min</option>
-                        <option value={30}>30 min</option>
-                        <option value={45}>45 min</option>
-                        <option value={60}>60 min</option>
-                    </select>
-                </div>
-
                 <div className="space-y-4 bg-zinc-900/40 p-5 rounded-3xl border border-zinc-800/50">
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Nombre Cliente</label>
