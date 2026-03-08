@@ -48,23 +48,24 @@ const enviarRecordatorio = (cita: DateList) => {
   const liquidarVenta = async (date: DateList) => {
     const idCarga = toast.loading("Liquidando cobro...");
     try {
-        // Esta única llamada ahora hace las dos cosas: registra venta y marca como pagada
         await registrarCobro(date);
-        
-        toast.update(idCarga, { 
-            render: "✅ Pagado y Registrado", 
-            type: "success", 
-            isLoading: false, 
-            autoClose: 2000 
+        toast.update(idCarga, {
+            render: "✅ Pagado y Registrado",
+            type: "success",
+            isLoading: false,
+            autoClose: 2000
         });
-
-        // Esto dispara el loader de nuevo y filtrará la cita porque ya es isPaid: true
-        await revalidator.revalidate(); 
         
+        // ✅ Espera el toast y redirige a la app de ventas
+        setTimeout(() => {
+            window.location.href = "https://latinosvip-ventas.netlify.app"
+        }, 2000)
+
     } catch (error) {
-        toast.update(idCarga, { render: "❌ Error al procesar", type: "error", isLoading: false });
+        toast.update(idCarga, { render: "❌ Error al procesar", type: "error", isLoading: false, autoClose: 3000 });
     }
 };
+
 
     return (
         <motion.div 
