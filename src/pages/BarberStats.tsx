@@ -1,34 +1,68 @@
 import { useLoaderData } from "react-router-dom";
 import { formatCurrency } from "../utils";
+import { getServices } from "../services/ServiceService";
 import { type Service } from "../types";
+
+export async function loader() {
+    return await getServices();
+}
 
 export default function BarberStats() {
     const services = useLoaderData() as Service[];
-    
-    // Agrupar por mes para el resumen histórico
-    const statsPorMes = services.reduce((acc, curr) => {
-        const mes = new Date(curr.createdAt).toLocaleString('es-ES', { month: 'long' });
+
+    // ✅ FIX: filtrar solo isPaid y parsear createdAt correctamente
+    const paid = services.filter(s => {
+        const isPaid = s.isPaid === true || s.isPaid === 1 ||
+                       (s as any).isPaid === "1" || (s as any).isPaid === "true";
+        return isPaid;
+    });
+
+    const statsPorMes = paid.reduce((acc, curr) => {
+        const raw = curr.createdAt;
+        const clean = typeof raw === 'string'
+            ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
+            : raw;
+        const d = new Date(clean);
+        if (isNaN(d.getTime())) return acc;
+        const mes = d.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
         acc[mes] = (acc[mes] || 0) + Number(curr.price);
         return acc;
     }, {} as Record<string, number>);
-    
+
+    const totalAcumulado = paid.reduce((acc, s) => acc + Number(s.price), 0);
+
     return (
-        <div className="grid gap-6 md:grid-cols-2">
-            <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-                <h3 className="text-amber-500 font-black uppercase mb-4">Ventas por Mes</h3>
-                {Object.entries(statsPorMes).map(([mes, total]) => (
-                    <div key={mes} className="flex justify-between border-b border-zinc-800 py-3">
-                        <span className="capitalize">{mes}</span>
-                        <span className="font-bold text-green-400">{formatCurrency(total)}</span>
-                    </div>
-                ))}
-            </div>
-            
-            <div className="bg-amber-600 p-6 rounded-3xl text-black flex flex-col justify-center items-center">
-                <p className="font-black text-xs uppercase opacity-70">Total Acumulado</p>
-                <p className="text-5xl font-black italic">
-                    {formatCurrency(services.reduce((acc, s) => acc + Number(s.price), 0))}
-                </p>
+        <div className="max-w-4xl mx-auto p-4">
+            <h2 className="text-4xl font-black text-white italic uppercase mb-8">
+                Estadísticas <span className="text-amber-500">Generales</span>
+            </h2>
+
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
+                    <h3 className="text-amber-500 font-black uppercase mb-4 text-sm tracking-widest">
+                        Ventas por Mes
+                    </h3>
+                    {Object.keys(statsPorMes).length === 0 ? (
+                        <p className="text-zinc-600 text-sm font-bold uppercase italic">Sin registros</p>
+                    ) : (
+                        Object.entries(statsPorMes).map(([mes, total]) => (
+                            <div key={mes} className="flex justify-between border-b border-zinc-800 py-3">
+                                <span className="capitalize text-zinc-300 font-bold text-sm">{mes}</span>
+                                <span className="font-black text-green-400">{formatCurrency(total)}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <div className="bg-amber-600 p-6 rounded-3xl text-black flex flex-col justify-center items-center shadow-2xl shadow-amber-600/20">
+                    <p className="font-black text-xs uppercase opacity-70 mb-2">Total Acumulado</p>
+                    <p className="text-5xl font-black italic">
+                        {formatCurrency(totalAcumulado)}
+                    </p>
+                    <p className="text-black/60 font-bold text-xs mt-2 uppercase">
+                        {paid.length} servicios pagados
+                    </p>
+                </div>
             </div>
         </div>
     );
