@@ -22,7 +22,7 @@ export async function deleteDate(id: number): Promise<void> {
         await axios.delete(`${API}/api/date/${id}`)
     } catch (error) {
         console.error("Error al eliminar cita:", error)
-        throw error // ⚠️ re-lanzamos para que el toast de error funcione
+        throw error
     }
 }
 
@@ -39,21 +39,22 @@ export async function updateDate(id: number, data: any): Promise<void> {
 // ✅ Registrar cobro — crea venta en /api/service Y marca cita pagada en /api/date
 export async function registrarCobro(ventaData: DateList): Promise<{ success: boolean }> {
     try {
-        // 1. Crear la venta en el historial de ventas
+        // 1. Crear la venta con isPaid: true desde el inicio
         await axios.post(`${API}/api/service`, {
             barber: ventaData.barber,
             service: ventaData.service,
             client: ventaData.client,
             phone: String(ventaData.phone ?? ""),
-            price: Number(ventaData.price)
+            price: Number(ventaData.price),
+            isPaid: true  // ✅ FIX PRINCIPAL
         })
 
-        // 2. Marcar la cita como pagada
+        // 2. Marcar la cita como pagada en /api/date
         await axios.patch(`${API}/api/date/${ventaData.id}`)
 
         return { success: true }
     } catch (error) {
         console.error("Error en registrarCobro:", error)
-        throw error // ⚠️ re-lanzamos para que el toast de error funcione
+        throw error
     }
 }
