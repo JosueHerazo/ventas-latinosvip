@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Form, useActionData, type ActionFunctionArgs, redirect, 
+import { Form, useActionData, type ActionFunctionArgs, redirect,
          type LoaderFunctionArgs, useLoaderData, Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import ErrorMessaje from "../componenents/ErrorMessaje"
@@ -40,39 +40,33 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function EditDate() {
     const cita = useLoaderData() as DateList
     const error = useActionData() as string
-
-    // ✅ Estado barberos — mismo localStorage que NewService
-    const [barberos, setBarberos] = useState<string[]>(() => {
-        const saved = localStorage.getItem("barberos_barber")
-        return saved ? JSON.parse(saved) : INITIAL_BARBERS
-    })
-
-    const [servicios, setServicios] = useState<{ nombre: string, precio: number }[]>(() => {
-        const saved = localStorage.getItem("servicios_barber")
-        return saved ? JSON.parse(saved) : INITIAL_SERVICES
-    })
-
     const [showAdmin, setShowAdmin] = useState(false)
+
+    // ✅ useState igual que NewService — se actualiza al añadir/borrar
+    const [barberos, setBarberos] = useState<string[]>(() =>
+        JSON.parse(localStorage.getItem("barberos_barber") || "null") ?? INITIAL_BARBERS
+    )
+    const [servicios, setServicios] = useState<{ nombre: string; precio: number }[]>(() =>
+        JSON.parse(localStorage.getItem("servicios_barber") || "null") ?? INITIAL_SERVICES
+    )
 
     const guardarBarberos = (nuevos: string[]) => {
         setBarberos(nuevos)
         localStorage.setItem("barberos_barber", JSON.stringify(nuevos))
     }
-
-    const guardarServicios = (nuevos: { nombre: string, precio: number }[]) => {
+    const guardarServicios = (nuevos: { nombre: string; precio: number }[]) => {
         setServicios(nuevos)
         localStorage.setItem("servicios_barber", JSON.stringify(nuevos))
     }
 
     const handleAddBarber = () => {
         const nombre = prompt("Nombre del nuevo barbero:")
-        if (nombre) guardarBarberos([...barberos, nombre])
+        if (nombre?.trim()) guardarBarberos([...barberos, nombre.trim()])
     }
-
     const handleAddService = () => {
         const nombre = prompt("Nombre del servicio:")
         const precio = prompt("Precio del servicio:")
-        if (nombre && precio) guardarServicios([...servicios, { nombre, precio: Number(precio) }])
+        if (nombre?.trim() && precio) guardarServicios([...servicios, { nombre: nombre.trim(), precio: Number(precio) }])
     }
 
     const formatDateForInput = (dateStr: string) => {
@@ -82,76 +76,54 @@ export default function EditDate() {
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-10 max-w-lg mx-auto bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-10 max-w-lg mx-auto bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
+
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-black text-amber-500 uppercase italic">
                     Editar <span className="text-white">Cita</span>
                 </h2>
-                <button
-                    type="button"
-                    onClick={() => setShowAdmin(!showAdmin)}
-                    className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-full hover:text-amber-500 transition-colors"
-                >
+                <button type="button" onClick={() => setShowAdmin(!showAdmin)}
+                    className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-full hover:text-amber-500 transition-colors">
                     {showAdmin ? "Cerrar Ajustes" : "⚙️ Ajustes"}
                 </button>
             </div>
 
-            {/* PANEL DE AJUSTES */}
             <AnimatePresence>
                 {showAdmin && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden mb-6 space-y-4 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800"
-                    >
-                        {/* Barberos */}
+                        className="overflow-hidden mb-6 space-y-4 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800">
+
                         <div>
                             <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Barberos</p>
                             <div className="flex flex-wrap gap-2">
                                 {barberos.map((b) => (
-                                    <button
-                                        key={b}
-                                        type="button"
+                                    <button key={b} type="button"
                                         onClick={() => guardarBarberos(barberos.filter(x => x !== b))}
-                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
-                                    >
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all">
                                         {b} ✕
                                     </button>
                                 ))}
-                                <button
-                                    type="button"
-                                    onClick={handleAddBarber}
-                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
-                                >
+                                <button type="button" onClick={handleAddBarber}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold">
                                     + Nuevo
                                 </button>
                             </div>
                         </div>
 
-                        {/* Servicios */}
                         <div>
                             <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Servicios</p>
                             <div className="flex flex-wrap gap-2">
                                 {servicios.map((s) => (
-                                    <button
-                                        key={s.nombre}
-                                        type="button"
+                                    <button key={s.nombre} type="button"
                                         onClick={() => guardarServicios(servicios.filter(x => x.nombre !== s.nombre))}
-                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
-                                    >
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all">
                                         {s.nombre} (${s.precio}) ✕
                                     </button>
                                 ))}
-                                <button
-                                    type="button"
-                                    onClick={handleAddService}
-                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
-                                >
+                                <button type="button" onClick={handleAddService}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold">
                                     + Nuevo
                                 </button>
                             </div>
@@ -173,12 +145,9 @@ export default function EditDate() {
                     </div>
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Fecha y Hora</label>
-                        <input
-                            name="dateList"
-                            type="datetime-local"
+                        <input name="dateList" type="datetime-local"
                             defaultValue={formatDateForInput(cita.dateList)}
-                            className="w-full font-bold text-white rounded-xl p-3 bg-zinc-900 border border-zinc-800 outline-none focus:border-amber-500"
-                        />
+                            className="w-full font-bold text-white rounded-xl p-3 bg-zinc-900 border border-zinc-800 outline-none focus:border-amber-500" />
                     </div>
                 </div>
 
@@ -214,9 +183,10 @@ export default function EditDate() {
                     className="mt-4 bg-amber-600 hover:bg-amber-500 p-4 text-black font-black rounded-xl uppercase transition-all shadow-lg active:scale-95">
                     Actualizar Cita ✓
                 </button>
-                <Link to="/lista/citas"
-                    className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
+                <Link to="/lista/citas" className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
                     Volver a Citas
                 </Link>
             </Form>
         </motion.div>
+    )
+}
