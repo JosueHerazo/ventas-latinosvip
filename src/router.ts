@@ -47,6 +47,11 @@ router.delete("/:id",
     deleteProduct
 )
 
-
+server.get("/fix-ispaid", async (req, res) => {
+    await Datelist.sequelize?.query(
+        `UPDATE services SET "isPaid" = true WHERE "isPaid" = false OR "isPaid" IS NULL`
+    )
+    res.json({ ok: true, mensaje: "isPaid actualizado en todas las ventas" })
+})
 
  export default router
