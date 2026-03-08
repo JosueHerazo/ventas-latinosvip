@@ -1,6 +1,7 @@
-import { Form, useActionData, type ActionFunctionArgs, redirect, 
+import { useState } from "react"
+import { Form, useActionData, type ActionFunctionArgs, redirect,
          type LoaderFunctionArgs, useLoaderData, Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import ErrorMessaje from "../componenents/ErrorMessaje"
 import { updateService, getServiceById } from "../services/ServiceService"
 import type { Service } from "../types"
@@ -39,14 +40,39 @@ export default function EditService() {
     const service = useLoaderData() as Service
     const error = useActionData() as string
 
-    // ✅ Lee del mismo localStorage que NewService
-    const barberos: string[] = JSON.parse(
-        localStorage.getItem("barberos_barber") || "null"
-    ) ?? INITIAL_BARBERS
+    // ✅ Estado barberos — mismo localStorage que NewService
+    const [barberos, setBarberos] = useState<string[]>(() => {
+        const saved = localStorage.getItem("barberos_barber")
+        return saved ? JSON.parse(saved) : INITIAL_BARBERS
+    })
 
-    const servicios: { nombre: string }[] = JSON.parse(
-        localStorage.getItem("servicios_barber") || "null"
-    ) ?? INITIAL_SERVICES
+    const [servicios, setServicios] = useState<{ nombre: string, precio: number }[]>(() => {
+        const saved = localStorage.getItem("servicios_barber")
+        return saved ? JSON.parse(saved) : INITIAL_SERVICES
+    })
+
+    const [showAdmin, setShowAdmin] = useState(false)
+
+    const guardarBarberos = (nuevos: string[]) => {
+        setBarberos(nuevos)
+        localStorage.setItem("barberos_barber", JSON.stringify(nuevos))
+    }
+
+    const guardarServicios = (nuevos: { nombre: string, precio: number }[]) => {
+        setServicios(nuevos)
+        localStorage.setItem("servicios_barber", JSON.stringify(nuevos))
+    }
+
+    const handleAddBarber = () => {
+        const nombre = prompt("Nombre del nuevo barbero:")
+        if (nombre) guardarBarberos([...barberos, nombre])
+    }
+
+    const handleAddService = () => {
+        const nombre = prompt("Nombre del servicio:")
+        const precio = prompt("Precio del servicio:")
+        if (nombre && precio) guardarServicios([...servicios, { nombre, precio: Number(precio) }])
+    }
 
     return (
         <motion.div
@@ -54,9 +80,78 @@ export default function EditService() {
             animate={{ opacity: 1, scale: 1 }}
             className="mt-10 max-w-lg mx-auto bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl"
         >
-            <h2 className="text-3xl font-black text-amber-500 uppercase italic mb-6">
-                Editar <span className="text-white">Venta</span>
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-black text-amber-500 uppercase italic">
+                    Editar <span className="text-white">Venta</span>
+                </h2>
+                <button
+                    type="button"
+                    onClick={() => setShowAdmin(!showAdmin)}
+                    className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-full hover:text-amber-500 transition-colors"
+                >
+                    {showAdmin ? "Cerrar Ajustes" : "⚙️ Ajustes"}
+                </button>
+            </div>
+
+            {/* PANEL DE AJUSTES */}
+            <AnimatePresence>
+                {showAdmin && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden mb-6 space-y-4 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800"
+                    >
+                        {/* Barberos */}
+                        <div>
+                            <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Barberos</p>
+                            <div className="flex flex-wrap gap-2">
+                                {barberos.map((b) => (
+                                    <button
+                                        key={b}
+                                        type="button"
+                                        onClick={() => guardarBarberos(barberos.filter(x => x !== b))}
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                                    >
+                                        {b} ✕
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={handleAddBarber}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
+                                >
+                                    + Nuevo
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Servicios */}
+                        <div>
+                            <p className="text-amber-500 font-bold text-[10px] uppercase mb-2">Gestionar Servicios</p>
+                            <div className="flex flex-wrap gap-2">
+                                {servicios.map((s) => (
+                                    <button
+                                        key={s.nombre}
+                                        type="button"
+                                        onClick={() => guardarServicios(servicios.filter(x => x.nombre !== s.nombre))}
+                                        className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded-lg border border-zinc-700 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                                    >
+                                        {s.nombre} (${s.precio}) ✕
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={handleAddService}
+                                    className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 font-bold"
+                                >
+                                    + Nuevo
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
@@ -101,11 +196,9 @@ export default function EditService() {
                     className="mt-4 bg-amber-600 hover:bg-amber-500 p-4 text-black font-black rounded-xl uppercase transition-all active:scale-95">
                     Guardar Cambios ✓
                 </button>
-
-                <Link to="/" className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
+                <Link to="/"
+                    className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
                     Cancelar
                 </Link>
             </Form>
         </motion.div>
-    )
-}
