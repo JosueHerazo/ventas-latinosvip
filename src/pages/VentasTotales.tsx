@@ -8,8 +8,9 @@ import type { Service } from "../types";
 export async function loader() {
     return await getServices();
 }
+
 export default function VentasTotales() {
-    const services = useLoaderData() as Service[] ; 
+    const services = useLoaderData() as Service[];
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -20,31 +21,39 @@ export default function VentasTotales() {
         window.open(`https://wa.me/${telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msj)}`, '_blank');
     };
 
-    
-
-   const filteredData = useMemo(() => {
-    if (!services) return []; // Seguridad extra
+    const filteredData = useMemo(() => {
+        if (!services) return [];
         return services.filter(s => {
-            const d = new Date(s.createdAt);
-        if (isNaN(d.getTime())) return false; 
-        const isPaid = s.isPaid === true || s.isPaid === 1 || s.isPaid === "1";
-        return d.getMonth() === selectedMonth && 
-               d.getFullYear() === selectedYear && 
-               isPaid;
-    });
+            // ✅ FIX: parsear createdAt correctamente (puede venir con o sin Z)
+            const raw = s.createdAt;
+            if (!raw) return false;
+            // Forzar interpretación local quitando Z o sufijo UTC
+            const clean = typeof raw === 'string'
+                ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
+                : raw;
+            const d = new Date(clean);
+            if (isNaN(d.getTime())) return false;
+
+            // ✅ FIX: isPaid puede ser boolean, number o string según Sequelize
+            const isPaid = s.isPaid === true || s.isPaid === 1 || 
+                           (s as any).isPaid === "1" || (s as any).isPaid === "true";
+
+            return d.getMonth() === selectedMonth &&
+                   d.getFullYear() === selectedYear &&
+                   isPaid;
+        });
     }, [services, selectedMonth, selectedYear]);
 
     const esAusente = (fechaCierre: string) => {
-        const fecha = new Date(fechaCierre);
+        const fecha = new Date(fechaCierre.replace('Z', '').replace(/\+\d{2}:\d{2}$/, ''));
         const hoy = new Date();
-        const diferenciaDias = Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24));
-        return diferenciaDias > 20;
+        return Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24)) > 20;
     };
 
-    // AHORA SÍ USAMOS TOTALMES
-   const totalMes = useMemo(() => 
-    filteredData.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0), 
-[filteredData]);
+    const totalMes = useMemo(() =>
+        filteredData.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0),
+        [filteredData]
+    );
 
     return (
         <div className="max-w-6xl mx-auto p-4">
@@ -57,9 +66,8 @@ export default function VentasTotales() {
                         Historial de facturación y retención
                     </p>
                 </div>
-
                 <div className="flex gap-2">
-                    <select 
+                    <select
                         className="bg-zinc-900 text-white p-3 rounded-xl border border-zinc-800 font-bold text-sm"
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -68,21 +76,19 @@ export default function VentasTotales() {
                             <option key={year} value={year}>{year}</option>
                         ))}
                     </select>
-
-                    <select 
+                    <select
                         className="bg-zinc-900 text-white p-3 rounded-xl border border-zinc-800 font-bold text-sm"
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(Number(e.target.value))}
                     >
-                        {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((m, i) => (
+                        {["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"].map((m, i) => (
                             <option key={m} value={i}>{m}</option>
                         ))}
                     </select>
                 </div>
             </header>
 
-            {/* SECCIÓN DEL TOTAL (USO DE TOTALMES) */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-amber-500 p-8 rounded-[2.5rem] mb-10 flex flex-col md:flex-row justify-between items-center shadow-2xl shadow-amber-500/10"
@@ -99,14 +105,26 @@ export default function VentasTotales() {
                 </div>
             </motion.div>
 
+            {/* ✅ DEBUG TEMPORAL — borra cuando funcione */}
+            <div className="text-[10px] text-zinc-600 mb-4 p-3 bg-zinc-900 rounded-xl border border-zinc-800">
+                <p>Total servicios cargados: <span className="text-amber-500">{services?.length ?? 0}</span></p>
+                <p>Filtrados para {["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][selectedMonth]}/{selectedYear}: <span className="text-amber-500">{filteredData.length}</span></p>
+                {services?.[0] && (
+                    <p>Ejemplo createdAt: <span className="text-zinc-400">{String(services[0].createdAt)}</span> | isPaid: <span className="text-zinc-400">{String((services[0] as any).isPaid)}</span></p>
+                )}
+            </div>
+
             <div className="grid gap-4">
                 {filteredData.length === 0 ? (
-                    <p className="text-zinc-600 text-center py-20 font-bold uppercase italic">No hay registros para esta fecha</p>
+                    <p className="text-zinc-600 text-center py-20 font-bold uppercase italic">
+                        No hay registros para esta fecha
+                    </p>
                 ) : (
                     filteredData.map(c => {
                         const ausente = esAusente(c.createdAt);
                         return (
-                            <div key={c.id} className={`bg-zinc-900 p-6 rounded-3xl border ${ausente ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'} flex flex-wrap justify-between items-center gap-4 transition-all hover:border-zinc-700`}>
+                            <div key={c.id}
+                                className={`bg-zinc-900 p-6 rounded-3xl border ${ausente ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'} flex flex-wrap justify-between items-center gap-4 transition-all hover:border-zinc-700`}>
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${ausente ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-amber-500'}`}>
                                         {ausente ? '!' : c.client[0]}
@@ -119,7 +137,6 @@ export default function VentasTotales() {
                                         <p className="text-zinc-500 text-[10px] font-bold uppercase">Atendido por: {c.barber}</p>
                                     </div>
                                 </div>
-
                                 <div className="flex items-center gap-4">
                                     <div className="text-right mr-4">
                                         <p className="text-white font-black text-lg">{formatCurrency(c.price)}</p>
@@ -128,8 +145,8 @@ export default function VentasTotales() {
                                     <button
                                         onClick={() => enviarRecordatorioWhatsApp(c.phone ?? "", c.client ?? "")}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg ${
-                                            ausente 
-                                            ? 'bg-red-600 text-white hover:bg-white hover:text-red-600' 
+                                            ausente
+                                            ? 'bg-red-600 text-white hover:bg-white hover:text-red-600'
                                             : 'bg-zinc-800 text-zinc-400 hover:text-amber-500 border border-zinc-700'
                                         }`}
                                     >
