@@ -18,6 +18,8 @@ connectDB()
 
 const server = express()
 
+server.set('etag', false)
+
 const whitelist = [
     process.env.FRONTEND_URL,
     process.env.FRONTEND_URL_DATE,
