@@ -21,7 +21,7 @@ export const ServiceSchema = object({
     barber: string(),
     client: string(), 
     phone: nullable(string()),
-    createdAt: string(),
+    createdAt: any(),
     isPaid: optional(nullable(any())), 
     isArchived: optional(nullable(any())), 
     updatedAt: optional(nullable(any())),
