@@ -55,28 +55,29 @@ if (result.success) {
 export async function getServices() {
     try {
         const url = `${import.meta.env.VITE_API_URL}/api/service`
-        const { data } = await axios(url)
-        
-        // --- PROCESAMIENTO DE DATOS ---
-        // Si el backend envía el objeto Client, extraemos solo el nombre
+        const { data } = await axios(url, {
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        })
+
         const cleanData = data.data.map((s: any) => ({
             ...s,
-            // Si client es un objeto (por el include), sacamos el nombre, si no, lo dejamos igual
             client: typeof s.client === 'object' && s.client !== null ? s.client.name : s.client,
-            price: Number(s.price) // Aseguramos que sea número
-        }));
+            price: Number(s.price)
+        }))
 
         const result = safeParse(ServicesSchema, cleanData)
-        
-        if(result.success){
+
+        if (result.success) {
             return result.output
         } else {
-            console.error("VALIBOT FALLÓ:", result.issues);
-            // Fallback: Retornamos cleanData para que la UI no muera
+            console.error("VALIBOT FALLÓ:", result.issues)
             return cleanData as Service[]
         }
     } catch (error) {
-        console.error("Error al obtener servicios", error);
+        console.error("Error al obtener servicios", error)
         return []
     }
 }
