@@ -8,8 +8,10 @@ type Barbero  = { id: string; nombre: string }
 type Servicio = { nombre: string; precio: number }
 
 const INITIAL_BARBERS: Barbero[] = [
-    { id: "will",   nombre: "Will"   },
-    { id: "stiven", nombre: "Stiven" },
+    { id: "josue", nombre: "Josue" },
+    { id: "vato",  nombre: "Vato"  },
+    { id: "will",  nombre: "Will"  },
+    { id: "stiven",nombre: "Stiven"},
 ]
 
 const INITIAL_SERVICES: Servicio[] = [
@@ -54,13 +56,34 @@ export default function NewService() {
     const [searchParams] = useSearchParams()
     const fileInputRef   = useRef<HTMLInputElement>(null)
 
-    // ── Al iniciar: si no hay nada guardado usa los nuevos defaults ──
-    const [barberos,  setBarberos]  = useState<Barbero[]>(() => {
-        const saved = loadLocal<Barbero[]>("barberos_barber", [])
-        // Si los guardados son los viejos (Josue/Vato), resetear a Will/Stiven
-        const sonViejos = saved.length > 0 && saved.every(b => ["Josue","Vato","josue","vato"].includes(b.nombre))
-        return (saved.length === 0 || sonViejos) ? INITIAL_BARBERS : saved
+    const [barberos, setBarberos] = useState<Barbero[]>(() => {
+        try {
+            const saved = localStorage.getItem("barberos_barber")
+            if (!saved) return INITIAL_BARBERS
+
+            const parsed = JSON.parse(saved)
+
+            if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_BARBERS
+            // formato viejo: array de strings
+            if (typeof parsed[0] === "string") {
+                localStorage.removeItem("barberos_barber")
+                return INITIAL_BARBERS
+            }
+            // objeto sin estructura válida
+            if (!parsed[0]?.id || !parsed[0]?.nombre) {
+                localStorage.removeItem("barberos_barber")
+                return INITIAL_BARBERS
+            }
+            // fusionar: respetar guardados + añadir los que falten
+            const ids = parsed.map((b: Barbero) => b.id)
+            const faltantes = INITIAL_BARBERS.filter(b => !ids.includes(b.id))
+            return [...parsed, ...faltantes]
+        } catch {
+            localStorage.removeItem("barberos_barber")
+            return INITIAL_BARBERS
+        }
     })
+
     const [servicios, setServicios] = useState<Servicio[]>(() =>
         loadLocal("servicios_barber", INITIAL_SERVICES)
     )
@@ -98,7 +121,6 @@ export default function NewService() {
         }
     }, [showModal])
 
-    // ── Helpers ───────────────────────────────────────────────────────
     const actualizarBarberos = (lista: Barbero[]) => {
         setBarberos(lista)
         saveLocal("barberos_barber", lista)
@@ -112,7 +134,6 @@ export default function NewService() {
         saveLocal("fotos_barberos", nuevas)
     }
 
-    // ── Barberos ──────────────────────────────────────────────────────
     const handleAñadirBarbero = () => {
         if (!nuevoBarber.trim()) return
         const nuevo: Barbero = { id: Date.now().toString(), nombre: nuevoBarber.trim() }
@@ -145,7 +166,6 @@ export default function NewService() {
         reader.readAsDataURL(archivo)
     }
 
-    // ── Servicios ─────────────────────────────────────────────────────
     const handleAñadirServicio = () => {
         const { nombre, precio } = nuevoServicio
         if (!nombre.trim() || precio === "") return
@@ -167,7 +187,6 @@ export default function NewService() {
 
     return (
         <>
-        {/* ══════════════════ MODAL ══════════════════ */}
         <AnimatePresence>
         {showModal && (
             <motion.div
@@ -187,7 +206,6 @@ export default function NewService() {
                             className="text-zinc-500 hover:text-white w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center">✕</button>
                     </div>
 
-                    {/* Tabs */}
                     <div className="flex gap-2 mb-5 p-1 bg-zinc-900 rounded-2xl border border-zinc-800">
                         {(["barberos", "servicios"] as const).map(tab => (
                             <button key={tab}
@@ -199,7 +217,6 @@ export default function NewService() {
                         ))}
                     </div>
 
-                    {/* ── TAB BARBEROS ── */}
                     {modalTab === "barberos" && (
                         <div className="space-y-3">
                             {barberos.map(b => (
@@ -210,7 +227,7 @@ export default function NewService() {
                                         {fotos[b.id]
                                             ? <img src={fotos[b.id]} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
                                             : <div className="w-12 h-12 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-xl font-black text-amber-500">
-                                                {b.nombre[0]?.toUpperCase()}
+                                                {b.nombre?.[0]?.toUpperCase() ?? "?"}
                                               </div>
                                         }
                                         <span className="absolute -bottom-1 -right-1 bg-amber-500 text-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-black">✎</span>
@@ -253,7 +270,6 @@ export default function NewService() {
                         </div>
                     )}
 
-                    {/* ── TAB SERVICIOS ── */}
                     {modalTab === "servicios" && (
                         <div className="space-y-2">
                             {servicios.map(s => (
@@ -301,7 +317,6 @@ export default function NewService() {
         )}
         </AnimatePresence>
 
-        {/* ══════════════════ FORMULARIO ══════════════════ */}
         <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="mt-10 max-w-lg mx-auto bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
@@ -320,7 +335,6 @@ export default function NewService() {
 
             <Form method="POST" className="flex flex-col gap-5">
 
-                {/* BARBERO */}
                 <div className="space-y-2">
                     <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Barbero</label>
                     <div className="flex gap-3 flex-wrap">
@@ -333,7 +347,7 @@ export default function NewService() {
                                     {fotos[b.id]
                                         ? <img src={fotos[b.id]} className="w-full h-full object-cover" />
                                         : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-2xl font-black text-amber-500">
-                                            {b.nombre[0]?.toUpperCase()}
+                                            {b.nombre?.[0]?.toUpperCase() ?? "?"}
                                           </div>
                                     }
                                 </div>
@@ -347,7 +361,6 @@ export default function NewService() {
                     <input type="hidden" name="barber" value={selectedBarber} />
                 </div>
 
-                {/* SERVICIO Y PRECIO */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Servicio</label>
@@ -368,7 +381,6 @@ export default function NewService() {
                     </div>
                 </div>
 
-                {/* CLIENTE */}
                 <div className="space-y-4 bg-zinc-900/40 p-5 rounded-3xl border border-zinc-800/50">
                     <div className="space-y-1">
                         <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Nombre Cliente</label>
