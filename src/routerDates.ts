@@ -1,54 +1,61 @@
 import { Router } from "express"
-import { body, param} from "express-validator"
-import {  createDate, deleteDate, getDates, getDateById, updateAppointmentStatus, UpdateDate } from "./handlers/date"
+import { body, param } from "express-validator"
+import {
+    createDate, deleteDate, getDates, getDateById,
+    updateAppointmentStatus, UpdateDate,
+    getBarberAvailability   // ← añadir
+} from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
 
 const router = Router()
 
-//  Routing
+router.get("/", getDates)
 
-router.get("/",
-    getDates
+// ✅ ANTES de /:id
+router.get(
+    "/availability/:barber",
+    param("barber").notEmpty().withMessage("Barbero requerido").trim(),
+    handlerInputErrors,
+    getBarberAvailability
 )
 
 router.post("/",
-     // validacion
     body("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"),
     body("price")
-    .notEmpty().withMessage("El valor del producto no puede ir vacio")
-    .isNumeric().withMessage("El precio debe ser un número")
-    .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"),
-    handlerInputErrors,
+        .notEmpty().withMessage("El valor del producto no puede ir vacio")
+        .isNumeric().withMessage("El precio debe ser un número")
+        .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"),
     body("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(),
     body("dateList").notEmpty().withMessage("La fecha no puede ir vacio"),
     body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
     body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
     body("duration").isNumeric().notEmpty().withMessage("tiempo de service"),
+    handlerInputErrors,
     createDate
 )
+
 router.get("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
-    getDateById)
-// PUT SI ENVIAS UNA PARTE LAS DEMAS PARTES DEL OBJETO SE ENVIAN VACIAS 
-router.put("/:id", 
+    getDateById
+)
+
+router.put("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
-    UpdateDate)
-// CON PATCH SE PUEDE MODIFICAR PARTES DEL OBJETO SIN QUE MODIFIQUE LAS DEMAS PARTES DEL OBJETO
+    UpdateDate
+)
 
-// con patch se envie la disponibilidad del product solo se toma del dataValue pel producto para motificar el boolean de true a false
 router.patch("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
-    updateAppointmentStatus)
+    updateAppointmentStatus
+)
 
-router.delete("/:id",  
+router.delete("/:id",
     param("id").isInt().withMessage("ID no valido"),
-    handlerInputErrors, 
+    handlerInputErrors,
     deleteDate
 )
 
-
-
- export default router
+export default router
