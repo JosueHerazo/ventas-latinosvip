@@ -6,6 +6,9 @@ import Client from "../models/Clients.models"
 export const getDates = async (req: Request, res: Response) => {
     try {
         const service = await Datelist.findAll({
+            where: {
+                service: { [Op.notIn]: ['__barberos__'] }  // ✅ excluir config
+            },
             order: [["createdAt", "DESC"]],
             attributes: { exclude: ["updatedAt"] },
             include: [Client]
