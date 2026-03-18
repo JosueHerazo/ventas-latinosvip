@@ -39,17 +39,17 @@ export async function updateDate(id: number, data: any): Promise<void> {
 // ✅ Registrar cobro — crea venta en /api/service Y marca cita pagada en /api/date
 export async function registrarCobro(ventaData: DateList): Promise<{ success: boolean }> {
     try {
-        // 1. Crear la venta con isPaid: true desde el inicio
+        // 1. ✅ Crear venta en /api/service — isPaid: true como booleano nativo
         await axios.post(`${API}/api/service`, {
-            barber: ventaData.barber,
+            barber:  ventaData.barber,
             service: ventaData.service,
-            client: ventaData.client,
-            phone: String(ventaData.phone ?? ""),
-            price: Number(ventaData.price),
-            isPaid: true  // ✅ FIX PRINCIPAL
+            client:  ventaData.client,
+            phone:   String(ventaData.phone ?? "").replace(/\s+/g, ''),
+            price:   Number(ventaData.price),
+            isPaid:  true   // booleano, no string
         })
 
-        // 2. Marcar la cita como pagada en /api/date
+        // 2. ✅ Marcar cita como pagada — toggle funciona porque empieza en false
         await axios.patch(`${API}/api/date/${ventaData.id}`)
 
         return { success: true }
