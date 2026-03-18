@@ -72,25 +72,19 @@ export default function BarberServices() {
     const startOfWeek = getStartOfWeek();
 
     const servicesbarber = services.filter((service) => {
-        // ✅ FIX: parsear createdAt sin Z para evitar desfase UTC
-        const raw = service.createdAt;
-        const clean = typeof raw === 'string'
-            ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
-            : raw;
-        const serviceDate = new Date(clean);
+    const raw = service.createdAt;
+    const clean = typeof raw === 'string'
+        ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
+        : raw;
+    const serviceDate = new Date(clean);
 
-        const coincideBarbero = service.barber.toLowerCase() === barber?.toLowerCase();
-        const esEstaSemana = serviceDate >= startOfWeek;
+    const coincideBarbero = service.barber.toLowerCase() === barber?.toLowerCase();
+    const esEstaSemana = serviceDate >= startOfWeek;
+    const noEstaArchivado = service.isArchived !== true;
 
-        // ✅ FIX: isPaid puede llegar como boolean, number o string
-        const estaPagado = service.isPaid === true || service.isPaid === 1 ||
-                           (service as any).isPaid === "1" || (service as any).isPaid === "true";
-
-        const noEstaArchivado = !service.isArchived;
-
-        return coincideBarbero && esEstaSemana && estaPagado && noEstaArchivado;
-    });
-
+    // ✅ Sin filtro isPaid — todo en /api/service ya está cobrado
+    return coincideBarbero && esEstaSemana && noEstaArchivado;
+});
     const totalSemana = servicesbarber.reduce((acc, cur) => acc + Number(cur.price), 0);
     const comisionBarbero = totalSemana * 0.50;
 
