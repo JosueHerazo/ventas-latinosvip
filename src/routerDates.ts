@@ -3,7 +3,8 @@ import { body, param } from "express-validator"
 import {
     createDate, deleteDate, getDates, getDateById,
     updateAppointmentStatus, UpdateDate,
-    getBarberAvailability   // ← añadir
+    getBarberAvailability,
+    getBarberos, saveBarberos
 } from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
 
@@ -11,7 +12,11 @@ const router = Router()
 
 router.get("/", getDates)
 
-// ✅ ANTES de /:id
+// ── Barberos (SIN validadores, ANTES de /:id) ─────────────────
+router.get("/barberos", getBarberos)
+router.post("/barberos", saveBarberos)
+
+// ── Availability (ANTES de /:id) ──────────────────────────────
 router.get(
     "/availability/:barber",
     param("barber").notEmpty().withMessage("Barbero requerido").trim(),
@@ -19,6 +24,7 @@ router.get(
     getBarberAvailability
 )
 
+// ── Crear cita ────────────────────────────────────────────────
 router.post("/",
     body("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"),
     body("price")
@@ -34,6 +40,7 @@ router.post("/",
     createDate
 )
 
+// ── CRUD por ID (SIEMPRE al final) ────────────────────────────
 router.get("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
