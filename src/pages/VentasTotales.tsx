@@ -24,23 +24,17 @@ export default function VentasTotales() {
     const filteredData = useMemo(() => {
         if (!services) return [];
         return services.filter(s => {
-            // ✅ FIX: parsear createdAt correctamente (puede venir con o sin Z)
             const raw = s.createdAt;
             if (!raw) return false;
-            // Forzar interpretación local quitando Z o sufijo UTC
             const clean = typeof raw === 'string'
                 ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
                 : raw;
             const d = new Date(clean);
             if (isNaN(d.getTime())) return false;
 
-            // ✅ FIX: isPaid puede ser boolean, number o string según Sequelize
-            const isPaid = s.isPaid === true || s.isPaid === 1 || 
-                           (s as any).isPaid === "1" || (s as any).isPaid === "true";
-
+            // ✅ Sin filtro isPaid — todo en /api/service ya está cobrado
             return d.getMonth() === selectedMonth &&
-                   d.getFullYear() === selectedYear &&
-                   isPaid;
+                   d.getFullYear() === selectedYear;
         });
     }, [services, selectedMonth, selectedYear]);
 
@@ -105,15 +99,6 @@ export default function VentasTotales() {
                 </div>
             </motion.div>
 
-            {/* ✅ DEBUG TEMPORAL — borra cuando funcione */}
-            <div className="text-[10px] text-zinc-600 mb-4 p-3 bg-zinc-900 rounded-xl border border-zinc-800">
-                <p>Total servicios cargados: <span className="text-amber-500">{services?.length ?? 0}</span></p>
-                <p>Filtrados para {["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][selectedMonth]}/{selectedYear}: <span className="text-amber-500">{filteredData.length}</span></p>
-                {services?.[0] && (
-                    <p>Ejemplo createdAt: <span className="text-zinc-400">{String(services[0].createdAt)}</span> | isPaid: <span className="text-zinc-400">{String((services[0] as any).isPaid)}</span></p>
-                )}
-            </div>
-
             <div className="grid gap-4">
                 {filteredData.length === 0 ? (
                     <p className="text-zinc-600 text-center py-20 font-bold uppercase italic">
@@ -158,7 +143,3 @@ export default function VentasTotales() {
                         );
                     })
                 )}
-            </div>
-        </div>
-    );
-}
