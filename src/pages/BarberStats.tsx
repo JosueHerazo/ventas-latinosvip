@@ -10,14 +10,8 @@ export async function loader() {
 export default function BarberStats() {
     const services = useLoaderData() as Service[];
 
-    // ✅ FIX: filtrar solo isPaid y parsear createdAt correctamente
-    const paid = services.filter(s => {
-        const isPaid = s.isPaid === true || s.isPaid === 1 ||
-                       (s as any).isPaid === "1" || (s as any).isPaid === "true";
-        return isPaid;
-    });
-
-    const statsPorMes = paid.reduce((acc, curr) => {
+    // ✅ Todo en /api/service ya está cobrado — sin filtro isPaid
+    const statsPorMes = services.reduce((acc, curr) => {
         const raw = curr.createdAt;
         const clean = typeof raw === 'string'
             ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
@@ -29,7 +23,7 @@ export default function BarberStats() {
         return acc;
     }, {} as Record<string, number>);
 
-    const totalAcumulado = paid.reduce((acc, s) => acc + Number(s.price), 0);
+    const totalAcumulado = services.reduce((acc, s) => acc + Number(s.price), 0);
 
     return (
         <div className="max-w-4xl mx-auto p-4">
@@ -60,7 +54,7 @@ export default function BarberStats() {
                         {formatCurrency(totalAcumulado)}
                     </p>
                     <p className="text-black/60 font-bold text-xs mt-2 uppercase">
-                        {paid.length} servicios pagados
+                        {services.length} servicios cobrados
                     </p>
                 </div>
             </div>
