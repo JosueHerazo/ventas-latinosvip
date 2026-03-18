@@ -11,14 +11,15 @@ export default function CheckoutService({ service }: CheckoutServiceProps) {
     const navigate = useNavigate();
 
     const handlePayment = async () => {
-        const confirmacion = confirm(`¿Confirmar cobro de ${formatCurrency(service.price)} para ${service.client}?`);
-        
+        const confirmacion = confirm(
+            `¿Confirmar cobro de ${formatCurrency(service.price)} para ${service.client}?`
+        );
+
         if (confirmacion) {
             try {
-                // Usamos la función que ya tienes en ServiceService.ts
                 await registrarCobro(service);
                 alert("Cobro registrado con éxito");
-                navigate(0); // Recarga la página actual para refrescar la lista
+                navigate(0);
             } catch (error) {
                 alert("Hubo un error al registrar el cobro");
             }
