@@ -8,18 +8,23 @@ import BarberSummary, { loader as barberPagoLoader } from "./pages/BarberSummary
 import BarberServices, { loader as barberServicesLoader } from "./pages/BarberServices"
 import SearchClients, { loader as searchClintsLoader } from "./pages/SearchClients"
 import DatesList, { loader as DateListLoader } from "./pages/DateClient"
-// 1. Importa tu nueva página de historial
-import VentasTotales from "./pages/VentasTotales" 
-import BarberHistory from "./componenents/BarberHistory"
+import VentasTotales, { loader as ventasTotalesLoader } from "./pages/VentasTotales"
+import BarberHistory, { loader as barberHistoryLoader } from "./componenents/BarberHistory"
 import EditDate, { loader as editDateLoader, action as editDateAction } from "./pages/EditDate"
-import BarberMonitor, {loader as monitorLoader } from "./componenents/BarberMonitor"
+import BarberMonitor, { loader as monitorLoader } from "./componenents/BarberMonitor"
+import BarberStats, { loader as barberStatsLoader } from "./pages/BarberStats"
+
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <Layout />,
         hydrateFallbackElement: <div>Cargando...</div>,
         children: [
-            { index: true, element: <Service />, loader: servicesLoader },
+            { 
+                index: true, 
+                element: <Service />, 
+                loader: servicesLoader 
+            },
             { 
                 path: "nuevo/servicio", 
                 element: <NewService />, 
@@ -40,6 +45,7 @@ export const router = createBrowserRouter([
                 element: <BarberSummary />,
                 loader: barberPagoLoader
             },
+            // ✅ Una sola ruta para semana actual — sin duplicados
             {
                 path: "barberos/:barber",
                 element: <BarberServices />,
@@ -54,37 +60,36 @@ export const router = createBrowserRouter([
                 path: "lista/citas",
                 element: <DatesList />,
                 loader: DateListLoader,
-            },// Rutas sugeridas
-            {   
-            path: "barbero/:barber",
-            element: <BarberServices />, // La que ya tienes (Semana actual)
+            },
+            // ✅ Historial por barbero — con loader
+            {
+                path: "admin/historial/:barber",
+                element: <BarberHistory />,
+                loader: barberHistoryLoader,
+            },
+            // ✅ Ventas totales mensuales — con loader
+            {
+                path: "admin/ventas-totales",
+                element: <VentasTotales />,
+                loader: ventasTotalesLoader,
+            },
+            // ✅ Estadísticas generales — con loader
+            {
+                path: "admin/estadisticas",
+                element: <BarberStats />,
+                loader: barberStatsLoader,
             },
             {
-            path: "historial/:barber",
-            element: <BarberHistory />, // La nueva (Meses/Años)
+                path: "admin/citas/editar/:id",
+                element: <EditDate />,
+                loader: editDateLoader,
+                action: editDateAction
             },
-            // Ejemplo de configuración de rutas
+            // ✅ Monitor — con loader
             {
-            path: "/admin/historial/:barber", // El :barber es la clave
-            element: <BarberHistory />,
-            loader: servicesLoader, // El loader que ya tienes
-            },
-            // 2. AÑADIMOS LA RUTA DE VENTAS TOTALES (HISTORIAL)
-            {
-                path: "/admin/ventas-totales",
-                element: <VentasTotales />
-            },
-            // En tu router.tsx, dentro de children: [ ... ]
-            {
-                path: "admin/citas/editar/:id", // Nota: Sin el "/" inicial si es hijo del Layout
-                element: <EditDate/>, // Asegúrate de crear este componente
-                loader: editDateLoader, // Y su loader
-                action: editDateAction  // Y su acción
-            },
-            {
-            path: "admin/monitor",
-            element: <BarberMonitor />,
-            loader: monitorLoader // El mismo que usas para VentasTotales
+                path: "admin/monitor",
+                element: <BarberMonitor />,
+                loader: monitorLoader,
             }
         ]
     }
