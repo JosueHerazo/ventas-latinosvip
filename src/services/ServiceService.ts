@@ -7,28 +7,27 @@ type serviceData = {
 }
 
 export async function addProduct(data: serviceData) {
-    try {
-        const result = safeParse(DraftServiceSchema, {
-            barber: data.barber,
-            service: data.service,
-            client: data.client,
-            phone: data.phone,
-            price: Number(data.price),
-        })
+    const result = safeParse(DraftServiceSchema, {
+        barber: data.barber,
+        service: data.service,
+        client: data.client,
+        phone: data.phone,
+        price: Number(data.price),
+    })
 
-        if (result.success) {
-            const url = `${import.meta.env.VITE_API_URL}/api/service`
-            await axios.post(url, {
-                barber: result.output.barber,
-                service: result.output.service,
-                client: result.output.client,
-                phone: result.output.phone,
-                price: +result.output.price,
-            })
-        }
-    } catch (error) {
-        console.log(error)
+    if (!result.success) {
+        console.error("Validation failed:", result.issues)
+        throw new Error("Invalid data: " + result.issues.map(i => i.message).join(", "))
     }
+
+    const url = `${import.meta.env.VITE_API_URL}/api/service`
+    await axios.post(url, {
+        barber: result.output.barber,
+        service: result.output.service,
+        client: result.output.client,
+        phone: result.output.phone,
+        price: +result.output.price,
+    })
 }
 
 export async function getServices() {
@@ -45,7 +44,6 @@ export async function getServices() {
             ...s,
             client: typeof s.client === 'object' && s.client !== null ? s.client.name : s.client,
             price: Number(s.price),
-            // ✅ Normalizar isPaid a boolean aquí, una sola vez para todos los componentes
             isPaid: s.isPaid === true || s.isPaid === 1 ||
                     s.isPaid === "1" || s.isPaid === "true",
             isArchived: s.isArchived === true || s.isArchived === 1 ||
@@ -57,11 +55,11 @@ export async function getServices() {
         if (result.success) {
             return result.output
         } else {
-            console.error("VALIBOT FALLÓ:", result.issues)
+            console.error("VALIBOT ERROR:", result.issues)
             return cleanData as Service[]
         }
     } catch (error) {
-        console.error("Error al obtener servicios", error)
+        console.error("Error fetching services", error)
         return []
     }
 }
@@ -74,7 +72,7 @@ export async function getServiceById(id: Service["id"]) {
         if (result.success) {
             return result.output
         } else {
-            console.warn("VALIBOT FALLÓ EN getServiceById:", result.issues)
+            console.warn("VALIBOT ERROR IN getServiceById:", result.issues)
             return data.data as Service
         }
     } catch (error) {
@@ -95,7 +93,7 @@ export async function updateService(data: serviceData, id: Service["id"]) {
             const url = `${import.meta.env.VITE_API_URL}/api/service/${id}`
             await axios.put(url, result.output)
         } else {
-            console.error("Error validando datos antes de actualizar:", result.issues)
+            console.error("Error validating data before update:", result.issues)
         }
     } catch (error) {
         console.log(error)
@@ -111,30 +109,28 @@ export async function deleteService(id: Service["id"]) {
     }
 }
 
-// ✅ FIX: apunta a /:id/pay — ruta dedicada para marcar como pagado
-export async function registrarCobro(ventaData: Service) {
+export async function registerPayment(ventaData: Service) {
     try {
         const url = `${import.meta.env.VITE_API_URL}/api/service/${ventaData.id}/pay`
         await axios.patch(url)
         return { success: true }
     } catch (error) {
-        console.error("Error al liquidar:", error)
+        console.error("Error registering payment:", error)
         throw error
     }
 }
 
-// ✅ FIX: era /api/cierres → ahora /api/service/cierres
-export async function archivarSemana(cierreData: any) {
+export async function archiveWeek(closeData: any) {
     const url = `${import.meta.env.VITE_API_URL}/api/service/cierres`
     const response = await fetch(url, {
         method: 'POST',
-        body: JSON.stringify(cierreData),
+        body: JSON.stringify(closeData),
         headers: { 'Content-Type': 'application/json' }
     })
     return await response.json()
 }
 
-export async function actualizarEstadoCita(id: number) {
+export async function updateAppointmentStatus(id: number) {
     const url = `${import.meta.env.VITE_API_URL}/api/service/${id}/pay`
     await axios.patch(url)
 }
@@ -144,7 +140,7 @@ export async function deleteDate(id: number) {
         const url = `${import.meta.env.VITE_API_URL}/api/service/${id}`
         await axios.delete(url)
     } catch (error) {
-        console.error("Error al eliminar cita:", error)
+        console.error("Error deleting appointment:", error)
     }
 }
 
@@ -172,7 +168,7 @@ export async function createClientFromContact(contactData: { client: string, pho
         })
         return response.data
     } catch (error) {
-        console.error("Error al guardar contacto:", error)
+        console.error("Error saving contact:", error)
         return null
     }
 }
