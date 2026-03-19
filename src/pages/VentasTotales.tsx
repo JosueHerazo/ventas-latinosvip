@@ -16,7 +16,7 @@ export default function VentasTotales() {
 
     const enviarRecordatorioWhatsApp = (telefono: string, nombre: string) => {
         if (!telefono) return alert("Sin teléfono");
-        const link = `https://latinosvip.netlify.app`;
+        const link = const link = `https://latinosvip.netlify.app`;
         const msj = `¡Hola ${nombre}! 💈 Te extrañamos en la barbería. ¿Listo para renovar tu corte? Reserva aquí: ${link}`;
         window.open(`https://wa.me/${telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msj)}`, '_blank');
     };
