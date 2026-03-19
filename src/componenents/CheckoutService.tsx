@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { registrarCobro } from "../services/ServiceService";
+import { registerPayment } from "../services/ServiceService";
 import { formatCurrency } from "../utils";
 import { type Service } from "../types";
 
@@ -11,14 +11,14 @@ export default function CheckoutService({ service }: CheckoutServiceProps) {
     const navigate = useNavigate();
 
     const handlePayment = async () => {
-        const confirmacion = confirm(
-            `¿Confirmar cobro de ${formatCurrency(service.price)} para ${service.client}?`
+        const confirmed = confirm(
+            `Confirmar cobro de ${formatCurrency(service.price)} para ${service.client}?`
         );
 
-        if (confirmacion) {
+        if (confirmed) {
             try {
-                await registrarCobro(service);
-                alert("Cobro registrado con éxito");
+                await registerPayment(service);
+                alert("Cobro registrado con exito");
                 navigate(0);
             } catch (error) {
                 alert("Hubo un error al registrar el cobro");
