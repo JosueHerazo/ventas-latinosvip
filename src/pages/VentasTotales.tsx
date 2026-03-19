@@ -14,11 +14,11 @@ export default function VentasTotales() {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-    const enviarRecordatorioWhatsApp = (telefono: string, nombre: string) => {
-        if (!telefono) return alert("Sin teléfono");
-        const link = const link = `https://latinosvip.netlify.app`;
-        const msj = `¡Hola ${nombre}! 💈 Te extrañamos en la barbería. ¿Listo para renovar tu corte? Reserva aquí: ${link}`;
-        window.open(`https://wa.me/${telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msj)}`, '_blank');
+    const sendWhatsAppReminder = (phone: string, name: string) => {
+        if (!phone) return alert("Sin telefono");
+        const link = `https://latinosvip.netlify.app`;
+        const msg = `Hola ${name}! Te esperamos en la barberia. Reserva aqui: ${link}`;
+        window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
     const filteredData = useMemo(() => {
@@ -35,13 +35,13 @@ export default function VentasTotales() {
         });
     }, [services, selectedMonth, selectedYear]);
 
-    const esAusente = (fechaCierre: string) => {
-        const fecha = new Date(fechaCierre.replace('Z', '').replace(/\+\d{2}:\d{2}$/, ''));
-        const hoy = new Date();
-        return Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24)) > 20;
+    const isAbsent = (createdAt: string) => {
+        const date = new Date(createdAt.replace('Z', '').replace(/\+\d{2}:\d{2}$/, ''));
+        const today = new Date();
+        return Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)) > 20;
     };
 
-    const totalMes = useMemo(() =>
+    const totalMonth = useMemo(() =>
         filteredData.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0),
         [filteredData]
     );
@@ -54,7 +54,7 @@ export default function VentasTotales() {
                         Cierres <span className="text-amber-500">Mensuales</span>
                     </h2>
                     <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest mt-2">
-                        Historial de facturación y retención
+                        Historial de facturacion y retencion
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -89,7 +89,7 @@ export default function VentasTotales() {
                         Total Recaudado en el Periodo
                     </p>
                     <p className="text-6xl font-black text-black tracking-tighter">
-                        {formatCurrency(totalMes)}
+                        {formatCurrency(totalMonth)}
                     </p>
                 </div>
                 <div className="bg-black/10 px-6 py-4 rounded-3xl mt-4 md:mt-0 text-center">
@@ -105,26 +105,26 @@ export default function VentasTotales() {
                     </p>
                 ) : (
                     filteredData.map(c => {
-                        const ausente = esAusente(c.createdAt);
+                        const absent = isAbsent(c.createdAt);
                         return (
                             <div
                                 key={c.id}
                                 className={`bg-zinc-900 p-6 rounded-3xl border ${
-                                    ausente ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'
+                                    absent ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'
                                 } flex flex-wrap justify-between items-center gap-4 transition-all hover:border-zinc-700`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${
-                                        ausente ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-amber-500'
+                                        absent ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-amber-500'
                                     }`}>
-                                        {ausente ? '!' : c.client[0]}
+                                        {absent ? '!' : c.client[0]}
                                     </div>
                                     <div>
                                         <h4 className="text-white font-black uppercase flex items-center gap-2">
                                             {c.client}
-                                            {ausente && (
+                                            {absent && (
                                                 <span className="text-[8px] bg-red-600 px-2 py-0.5 rounded text-white italic tracking-tighter">
-                                                    Ausente +20 días
+                                                    Ausente +20 dias
                                                 </span>
                                             )}
                                         </h4>
@@ -139,14 +139,14 @@ export default function VentasTotales() {
                                         <p className="text-zinc-600 text-[9px] font-bold uppercase">{c.createdAt}</p>
                                     </div>
                                     <button
-                                        onClick={() => enviarRecordatorioWhatsApp(c.phone ?? "", c.client ?? "")}
+                                        onClick={() => sendWhatsAppReminder(c.phone ?? "", c.client ?? "")}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all shadow-lg ${
-                                            ausente
+                                            absent
                                             ? 'bg-red-600 text-white hover:bg-white hover:text-red-600'
                                             : 'bg-zinc-800 text-zinc-400 hover:text-amber-500 border border-zinc-700'
                                         }`}
                                     >
-                                        <span>{ausente ? 'Recuperar' : 'Recordar'}</span>
+                                        <span>{absent ? 'Recuperar' : 'Recordar'}</span>
                                         <span className="text-sm">💬</span>
                                     </button>
                                 </div>
