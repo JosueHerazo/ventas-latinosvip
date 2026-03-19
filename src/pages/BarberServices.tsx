@@ -1,5 +1,5 @@
 import { useLoaderData, useParams, Link, useNavigate } from "react-router-dom";
-import { archivarSemana, getServices } from "../services/ServiceService";
+import { archiveWeek, getServices } from "../services/ServiceService";
 import type { Service } from "../types";
 import { formatDate, formatCurrency } from "../utils";
 import { motion } from "framer-motion";
@@ -12,22 +12,22 @@ export async function loader() {
     return await getServices();
 }
 
-const generarPDFLiquidacion = (barbero: string, total: number, comision: number, servicios: any[]) => {
+const generatePaymentPDF = (barber: string, total: number, commission: number, services: any[]) => {
     const doc = new jsPDF();
 
     doc.setFontSize(22);
     doc.setTextColor(191, 155, 48);
-    doc.text("BARBERÍA VIP - RECIBO DE PAGO", 14, 22);
+    doc.text("BARBERIA VIP - RECIBO DE PAGO", 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 30);
-    doc.text(`Barbero: ${barbero.toUpperCase()}`, 14, 35);
+    doc.text(`Fecha de emision: ${new Date().toLocaleDateString()}`, 14, 30);
+    doc.text(`Barbero: ${barber.toUpperCase()}`, 14, 35);
 
     autoTable(doc, {
         startY: 45,
         head: [['Servicio', 'Cliente', 'Fecha', 'Precio']],
-        body: servicios.map(s => [
+        body: services.map(s => [
             s.service,
             s.client,
             new Date(s.createdAt).toLocaleDateString(),
@@ -46,14 +46,14 @@ const generarPDFLiquidacion = (barbero: string, total: number, comision: number,
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(34, 197, 94);
-    doc.text(`TOTAL A PAGAR (50%): ${formatCurrency(comision)}`, 14, finalY + 10);
+    doc.text(`TOTAL A PAGAR (50%): ${formatCurrency(commission)}`, 14, finalY + 10);
 
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text("__________________________", 14, finalY + 30);
     doc.text("Firma del Barbero", 14, finalY + 35);
 
-    doc.save(`Liquidacion_${barbero}_${new Date().toLocaleDateString()}.pdf`);
+    doc.save(`Liquidacion_${barber}_${new Date().toLocaleDateString()}.pdf`);
 };
 
 export default function BarberServices() {
@@ -71,40 +71,40 @@ export default function BarberServices() {
     };
     const startOfWeek = getStartOfWeek();
 
-    const servicesbarber = services.filter((service) => {
-    const raw = service.createdAt;
-    const clean = typeof raw === 'string'
-        ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
-        : raw;
-    const serviceDate = new Date(clean);
+    const barberServices = services.filter((service) => {
+        const raw = service.createdAt;
+        const clean = typeof raw === 'string'
+            ? raw.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')
+            : raw;
+        const serviceDate = new Date(clean);
 
-    const coincideBarbero = service.barber.toLowerCase() === barber?.toLowerCase();
-    const esEstaSemana = serviceDate >= startOfWeek;
-    const noEstaArchivado = service.isArchived !== true;
+        const matchesBarber  = service.barber.toLowerCase() === barber?.toLowerCase();
+        const isThisWeek     = serviceDate >= startOfWeek;
+        const notArchived    = service.isArchived !== true;
 
-    // ✅ Sin filtro isPaid — todo en /api/service ya está cobrado
-    return coincideBarbero && esEstaSemana && noEstaArchivado;
-});
-    const totalSemana = servicesbarber.reduce((acc, cur) => acc + Number(cur.price), 0);
-    const comisionBarbero = totalSemana * 0.50;
+        return matchesBarber && isThisWeek && notArchived;
+    });
 
-    const finalizarSemana = async () => {
-        const confirmar = confirm(`¿Cerrar semana de ${barber}?`);
-        if (confirmar) {
-            const cierreData = {
+    const weekTotal      = barberServices.reduce((acc, cur) => acc + Number(cur.price), 0);
+    const barberCommission = weekTotal * 0.50;
+
+    const closeWeek = async () => {
+        const confirmed = confirm(`Cerrar semana de ${barber}?`);
+        if (confirmed) {
+            const closeData = {
                 barbero: barber || "Desconocido",
                 fechaCierre: new Date().toISOString(),
-                totalBruto: totalSemana,
-                comision50: comisionBarbero,
-                serviciosArchivados: servicesbarber.map(s => s.id)
+                totalBruto: weekTotal,
+                comision50: barberCommission,
+                serviciosArchivados: barberServices.map(s => s.id)
             };
             try {
-                await archivarSemana(cierreData);
-                generarPDFLiquidacion(
+                await archiveWeek(closeData);
+                generatePaymentPDF(
                     barber || "Sin Nombre",
-                    totalSemana,
-                    comisionBarbero,
-                    servicesbarber
+                    weekTotal,
+                    barberCommission,
+                    barberServices
                 );
                 alert("La semana ha sido liquidada. Se ha descargado el comprobante de pago.");
                 navigate("/admin/ventas-totales");
@@ -141,8 +141,8 @@ export default function BarberServices() {
                         </tr>
                     </thead>
                     <tbody>
-                        {servicesbarber.length > 0 ? (
-                            servicesbarber.map((service) => (
+                        {barberServices.length > 0 ? (
+                            barberServices.map((service) => (
                                 <tr key={service.id} className="text-center border-b border-zinc-800 hover:bg-zinc-800">
                                     <td className="p-3">{service.client}</td>
                                     <td className="p-3">{service.service}</td>
@@ -164,7 +164,7 @@ export default function BarberServices() {
             <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800 flex flex-col items-center">
                     <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2">Total Recaudado</span>
-                    <p className="text-4xl text-white font-black">{formatCurrency(totalSemana)}</p>
+                    <p className="text-4xl text-white font-black">{formatCurrency(weekTotal)}</p>
                 </div>
 
                 <motion.div
@@ -172,24 +172,24 @@ export default function BarberServices() {
                     transition={{ duration: 2, repeat: Infinity }}
                     className="bg-amber-500 p-8 rounded-[2rem] flex flex-col items-center shadow-2xl shadow-amber-500/20"
                 >
-                    <span className="text-black text-[10px] font-black uppercase tracking-widest mb-2">Tu Liquidación (50%)</span>
-                    <p className="text-4xl text-black font-black italic">{formatCurrency(comisionBarbero)}</p>
+                    <span className="text-black text-[10px] font-black uppercase tracking-widest mb-2">Tu Liquidacion (50%)</span>
+                    <p className="text-4xl text-black font-black italic">{formatCurrency(barberCommission)}</p>
                 </motion.div>
             </div>
 
             <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <Link className="bg-zinc-700 hover:bg-zinc-600 rounded-xl p-3 font-bold text-white transition-colors" to="/pago/barberos">
-                    ← Volver al Resumen
+                    Volver al Resumen
                 </Link>
                 <p className="text-2xl text-white font-bold bg-amber-600/20 p-4 rounded-xl border border-amber-600">
-                    Total Semana: <span className="text-amber-500">{formatCurrency(totalSemana)}</span>
+                    Total Semana: <span className="text-amber-500">{formatCurrency(weekTotal)}</span>
                 </p>
             </div>
 
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={finalizarSemana}
+                onClick={closeWeek}
                 className="w-full mt-10 bg-red-600 hover:bg-red-500 text-white font-black py-6 rounded-[2rem] uppercase tracking-[0.2em] shadow-2xl shadow-red-900/40"
             >
                 Cerrar Semana y Archivar Caja
