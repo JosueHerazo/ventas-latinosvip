@@ -2,12 +2,10 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { getDatesList } from "../services/serviceDate";
 import { toast } from "react-toastify";
 
-// Sonido generado por Web Audio API — sin depender de archivo externo
 const playNotificationSound = () => {
     try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        // Nota 1
+
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.connect(gain1);
@@ -18,7 +16,6 @@ const playNotificationSound = () => {
         osc1.start(ctx.currentTime);
         osc1.stop(ctx.currentTime + 0.3);
 
-        // Nota 2 — tono más alto después
         const osc2 = ctx.createOscillator();
         const gain2 = ctx.createGain();
         osc2.connect(gain2);
@@ -40,39 +37,34 @@ export function useCitaAlert() {
     const checkNewDates = useCallback(async () => {
         try {
             const dates = await getDatesList();
-            // Citas pendientes = las que NO están pagadas
             const pendientes = dates.filter(c => !c.isPaid).length;
             setPendientesCount(pendientes);
 
-            // Primera carga — solo guardar, no alertar
             if (lastCount.current === null) {
                 lastCount.current = pendientes;
                 return;
             }
 
-            // Nueva cita detectada
             if (pendientes > lastCount.current) {
                 const nuevas = pendientes - lastCount.current;
 
-                // Sonido
                 playNotificationSound();
 
-                // Toast con estilo — icon como JSX (type-safe)
-                toast.info(
-                    `💈 \( {nuevas > 1 ? ` \){nuevas} NUEVAS CITAS` : "¡NUEVA CITA RECIBIDA!"}`,
-                    {
-                        position: "top-right",
-                        autoClose: 5000,
-                        style: {
-                            background: '#18181b',
-                            border: '1px solid #d97706',
-                            color: '#fff',
-                            fontWeight: 'bold',
-                            borderRadius: '1rem'
-                        },
-                        icon: <span>🔥</span>   // ← Cambio clave aquí
+                const mensaje = nuevas > 1
+                    ? `💈🔥 ${nuevas} NUEVAS CITAS`
+                    : "💈🔥 NUEVA CITA RECIBIDA";
+
+                toast.info(mensaje, {
+                    position: "top-right",
+                    autoClose: 5000,
+                    style: {
+                        background: '#18181b',
+                        border: '1px solid #d97706',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        borderRadius: '1rem'
                     }
-                );
+                });
             }
 
             lastCount.current = pendientes;
