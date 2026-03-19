@@ -4,32 +4,32 @@ import { motion, AnimatePresence } from "framer-motion"
 import { addProduct } from "../services/ServiceService"
 import ErrorMessaje from "../componenents/ErrorMessaje"
 
-type Barbero  = { id: string; nombre: string }
-type Servicio = { nombre: string; precio: number }
+type Barber  = { id: string; name: string }
+type Service = { name: string; price: number }
 
-const INITIAL_BARBERS: Barbero[] = [
-    { id: "josue", nombre: "Josue" },
-    { id: "vato",  nombre: "Vato"  },
-    { id: "will",  nombre: "Will"  },
-    { id: "stiven",nombre: "Stiven"},
+const INITIAL_BARBERS: Barber[] = [
+    { id: "josue",  name: "Josue"  },
+    { id: "vato",   name: "Vato"   },
+    { id: "will",   name: "Will"   },
+    { id: "stiven", name: "Stiven" },
 ]
 
-const INITIAL_SERVICES: Servicio[] = [
-    { nombre: "Corte",             precio: 13 },
-    { nombre: "Corte con cejas",   precio: 15 },
-    { nombre: "Corte con barba",   precio: 18 },
-    { nombre: "Corte Vip",         precio: 25 },
-    { nombre: "Barba",             precio: 8  },
-    { nombre: "Barba VIP",         precio: 11 },
-    { nombre: "Cejas",             precio: 5  },
-    { nombre: "Mechas",            precio: 30 },
-    { nombre: "Tinte",             precio: 30 },
-    { nombre: "Trenzas",           precio: 20 },
-    { nombre: "Mask Carbon",       precio: 3  },
-    { nombre: "Limpieza Facial",   precio: 15 },
-    { nombre: "Diseño",            precio: 3  },
-    { nombre: "Lavado de Cabello", precio: 2  },
-    { nombre: "Otros",             precio: 0  },
+const INITIAL_SERVICES: Service[] = [
+    { name: "Corte",             price: 13 },
+    { name: "Corte con cejas",   price: 15 },
+    { name: "Corte con barba",   price: 18 },
+    { name: "Corte Vip",         price: 25 },
+    { name: "Barba",             price: 8  },
+    { name: "Barba VIP",         price: 11 },
+    { name: "Cejas",             price: 5  },
+    { name: "Mechas",            price: 30 },
+    { name: "Tinte",             price: 30 },
+    { name: "Trenzas",           price: 20 },
+    { name: "Mask Carbon",       price: 3  },
+    { name: "Limpieza Facial",   price: 15 },
+    { name: "Diseno",            price: 3  },
+    { name: "Lavado de Cabello", price: 2  },
+    { name: "Otros",             price: 0  },
 ]
 
 function loadLocal<T>(key: string, fallback: T): T {
@@ -47,8 +47,17 @@ export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const data     = Object.fromEntries(formData)
     if (Object.values(data).includes("")) return "Todos los campos son obligatorios"
-    await addProduct({ ...data, phone: String(data.phone) })
-    return redirect("/")
+
+    try {
+        await addProduct({ ...data, phone: String(data.phone) })
+        return redirect("/")
+    } catch (error: any) {
+        console.error("Error saving sale:", error)
+        const msg = error?.response?.data?.message
+            || error?.message
+            || "Error al guardar la venta. Revisa la conexion con el servidor."
+        return msg
+    }
 }
 
 export default function NewService() {
@@ -56,38 +65,51 @@ export default function NewService() {
     const [searchParams] = useSearchParams()
     const fileInputRef   = useRef<HTMLInputElement>(null)
 
-    const [barberos, setBarberos] = useState<Barbero[]>(() => {
+    const [barbers, setBarbers] = useState<Barber[]>(() => {
         try {
             const saved = localStorage.getItem("barberos_barber")
             if (!saved) return INITIAL_BARBERS
-
             const parsed = JSON.parse(saved)
-
             if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_BARBERS
-            // formato viejo: array de strings
             if (typeof parsed[0] === "string") {
                 localStorage.removeItem("barberos_barber")
                 return INITIAL_BARBERS
             }
-            // objeto sin estructura válida
-            if (!parsed[0]?.id || !parsed[0]?.nombre) {
+            // Support both old {id, nombre} and new {id, name} formats
+            const normalized = parsed.map((b: any) => ({
+                id:   b.id,
+                name: b.name ?? b.nombre ?? "?"
+            }))
+            if (!normalized[0]?.id || !normalized[0]?.name) {
                 localStorage.removeItem("barberos_barber")
                 return INITIAL_BARBERS
             }
-            // fusionar: respetar guardados + añadir los que falten
-            const ids = parsed.map((b: Barbero) => b.id)
-            const faltantes = INITIAL_BARBERS.filter(b => !ids.includes(b.id))
-            return [...parsed, ...faltantes]
+            const ids      = normalized.map((b: Barber) => b.id)
+            const missing  = INITIAL_BARBERS.filter(b => !ids.includes(b.id))
+            return [...normalized, ...missing]
         } catch {
             localStorage.removeItem("barberos_barber")
             return INITIAL_BARBERS
         }
     })
 
-    const [servicios, setServicios] = useState<Servicio[]>(() =>
-        loadLocal("servicios_barber", INITIAL_SERVICES)
-    )
-    const [fotos, setFotos] = useState<Record<string, string>>(() =>
+    const [services, setServices] = useState<Service[]>(() => {
+        try {
+            const saved = localStorage.getItem("servicios_barber")
+            if (!saved) return INITIAL_SERVICES
+            const parsed = JSON.parse(saved)
+            if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_SERVICES
+            // Support both old {nombre, precio} and new {name, price} formats
+            return parsed.map((s: any) => ({
+                name:  s.name  ?? s.nombre ?? "?",
+                price: s.price ?? s.precio ?? 0,
+            }))
+        } catch {
+            return INITIAL_SERVICES
+        }
+    })
+
+    const [photos, setPhotos] = useState<Record<string, string>>(() =>
         loadLocal("fotos_barberos", {})
     )
 
@@ -95,94 +117,94 @@ export default function NewService() {
     const [selectedService, setSelectedService] = useState(searchParams.get("service") || "")
     const [price,           setPrice]           = useState<number | string>("")
 
-    const [showModal,     setShowModal]     = useState(false)
-    const [modalTab,      setModalTab]      = useState<"barberos" | "servicios">("barberos")
-    const [editandoId,    setEditandoId]    = useState<string | null>(null)
-    const [editNombres,   setEditNombres]   = useState<Record<string, string>>({})
-    const [editPrecios,   setEditPrecios]   = useState<Record<string, string>>({})
-    const [nuevoBarber,   setNuevoBarber]   = useState("")
-    const [nuevoServicio, setNuevoServicio] = useState({ nombre: "", precio: "" })
-    const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+    const [showModal,      setShowModal]      = useState(false)
+    const [modalTab,       setModalTab]       = useState<"barbers" | "services">("barbers")
+    const [editingId,      setEditingId]      = useState<string | null>(null)
+    const [editNames,      setEditNames]      = useState<Record<string, string>>({})
+    const [editPrices,     setEditPrices]     = useState<Record<string, string>>({})
+    const [newBarberName,  setNewBarberName]  = useState("")
+    const [newService,     setNewService]     = useState({ name: "", price: "" })
+    const [confirmDelete,  setConfirmDelete]  = useState<string | null>(null)
 
     useEffect(() => {
-        const s = servicios.find(s => s.nombre === selectedService)
-        if (s) setPrice(s.precio)
-    }, [selectedService, servicios])
+        const s = services.find(s => s.name === selectedService)
+        if (s) setPrice(s.price)
+    }, [selectedService, services])
 
     useEffect(() => {
         if (showModal) {
             const n: Record<string, string> = {}
-            barberos.forEach(b => { n[b.id] = b.nombre })
-            setEditNombres(n)
+            barbers.forEach(b => { n[b.id] = b.name })
+            setEditNames(n)
             const p: Record<string, string> = {}
-            servicios.forEach(s => { p[s.nombre] = String(s.precio) })
-            setEditPrecios(p)
+            services.forEach(s => { p[s.name] = String(s.price) })
+            setEditPrices(p)
             setConfirmDelete(null)
         }
     }, [showModal])
 
-    const actualizarBarberos = (lista: Barbero[]) => {
-        setBarberos(lista)
-        saveLocal("barberos_barber", lista)
+    const updateBarbers = (list: Barber[]) => {
+        setBarbers(list)
+        saveLocal("barberos_barber", list)
     }
-    const actualizarServicios = (lista: Servicio[]) => {
-        setServicios(lista)
-        saveLocal("servicios_barber", lista)
+    const updateServices = (list: Service[]) => {
+        setServices(list)
+        saveLocal("servicios_barber", list)
     }
-    const actualizarFotos = (nuevas: Record<string, string>) => {
-        setFotos(nuevas)
-        saveLocal("fotos_barberos", nuevas)
-    }
-
-    const handleAñadirBarbero = () => {
-        if (!nuevoBarber.trim()) return
-        const nuevo: Barbero = { id: Date.now().toString(), nombre: nuevoBarber.trim() }
-        actualizarBarberos([...barberos, nuevo])
-        setNuevoBarber("")
+    const updatePhotos = (updated: Record<string, string>) => {
+        setPhotos(updated)
+        saveLocal("fotos_barberos", updated)
     }
 
-    const handleBorrarBarbero = (id: string) => {
+    const handleAddBarber = () => {
+        if (!newBarberName.trim()) return
+        const newBarber: Barber = { id: Date.now().toString(), name: newBarberName.trim() }
+        updateBarbers([...barbers, newBarber])
+        setNewBarberName("")
+    }
+
+    const handleDeleteBarber = (id: string) => {
         if (confirmDelete !== id) { setConfirmDelete(id); return }
-        if (selectedBarber === barberos.find(b => b.id === id)?.nombre) setSelectedBarber("")
-        const nuevasFotos = { ...fotos }
-        delete nuevasFotos[id]
-        actualizarFotos(nuevasFotos)
-        actualizarBarberos(barberos.filter(b => b.id !== id))
+        if (selectedBarber === barbers.find(b => b.id === id)?.name) setSelectedBarber("")
+        const updatedPhotos = { ...photos }
+        delete updatedPhotos[id]
+        updatePhotos(updatedPhotos)
+        updateBarbers(barbers.filter(b => b.id !== id))
         setConfirmDelete(null)
     }
 
-    const handleGuardarNombre = (id: string) => {
-        const nuevo = editNombres[id]?.trim()
-        if (!nuevo) return
-        actualizarBarberos(barberos.map(b => b.id === id ? { ...b, nombre: nuevo } : b))
+    const handleSaveName = (id: string) => {
+        const updated = editNames[id]?.trim()
+        if (!updated) return
+        updateBarbers(barbers.map(b => b.id === id ? { ...b, name: updated } : b))
     }
 
-    const handleCambiarFoto = (id: string, archivo: File) => {
+    const handleChangePhoto = (id: string, file: File) => {
         const reader = new FileReader()
         reader.onload = (e) => {
             const base64 = e.target?.result as string
-            actualizarFotos({ ...fotos, [id]: base64 })
+            updatePhotos({ ...photos, [id]: base64 })
         }
-        reader.readAsDataURL(archivo)
+        reader.readAsDataURL(file)
     }
 
-    const handleAñadirServicio = () => {
-        const { nombre, precio } = nuevoServicio
-        if (!nombre.trim() || precio === "") return
-        actualizarServicios([...servicios, { nombre: nombre.trim(), precio: Number(precio) }])
-        setNuevoServicio({ nombre: "", precio: "" })
+    const handleAddService = () => {
+        const { name, price } = newService
+        if (!name.trim() || price === "") return
+        updateServices([...services, { name: name.trim(), price: Number(price) }])
+        setNewService({ name: "", price: "" })
     }
 
-    const handleBorrarServicio = (nombre: string) => {
-        if (confirmDelete !== nombre) { setConfirmDelete(nombre); return }
-        actualizarServicios(servicios.filter(s => s.nombre !== nombre))
+    const handleDeleteService = (name: string) => {
+        if (confirmDelete !== name) { setConfirmDelete(name); return }
+        updateServices(services.filter(s => s.name !== name))
         setConfirmDelete(null)
     }
 
-    const handleGuardarPrecio = (nombre: string) => {
-        const nuevo = Number(editPrecios[nombre])
-        if (isNaN(nuevo)) return
-        actualizarServicios(servicios.map(s => s.nombre === nombre ? { ...s, precio: nuevo } : s))
+    const handleSavePrice = (name: string) => {
+        const updated = Number(editPrices[name])
+        if (isNaN(updated)) return
+        updateServices(services.map(s => s.name === name ? { ...s, price: updated } : s))
     }
 
     return (
@@ -201,48 +223,48 @@ export default function NewService() {
                     className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl max-h-[88vh] overflow-y-auto">
 
                     <div className="flex justify-between items-center mb-5">
-                        <h3 className="text-amber-500 font-black text-lg">⚙️ Gestionar</h3>
+                        <h3 className="text-amber-500 font-black text-lg">Gestionar</h3>
                         <button onClick={() => setShowModal(false)}
-                            className="text-zinc-500 hover:text-white w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center">✕</button>
+                            className="text-zinc-500 hover:text-white w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center">X</button>
                     </div>
 
                     <div className="flex gap-2 mb-5 p-1 bg-zinc-900 rounded-2xl border border-zinc-800">
-                        {(["barberos", "servicios"] as const).map(tab => (
+                        {(["barbers", "services"] as const).map(tab => (
                             <button key={tab}
                                 onClick={() => { setModalTab(tab); setConfirmDelete(null) }}
                                 className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase transition-all
                                     ${modalTab === tab ? "bg-amber-500 text-black" : "text-zinc-400 hover:text-white"}`}>
-                                {tab === "barberos" ? "✂️ Barberos" : "💈 Servicios"}
+                                {tab === "barbers" ? "Barberos" : "Servicios"}
                             </button>
                         ))}
                     </div>
 
-                    {modalTab === "barberos" && (
+                    {modalTab === "barbers" && (
                         <div className="space-y-3">
-                            {barberos.map(b => (
+                            {barbers.map(b => (
                                 <div key={b.id}
                                     className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
                                     <div className="relative cursor-pointer flex-shrink-0"
-                                        onClick={() => { setEditandoId(b.id); fileInputRef.current?.click() }}>
-                                        {fotos[b.id]
-                                            ? <img src={fotos[b.id]} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
+                                        onClick={() => { setEditingId(b.id); fileInputRef.current?.click() }}>
+                                        {photos[b.id]
+                                            ? <img src={photos[b.id]} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
                                             : <div className="w-12 h-12 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-xl font-black text-amber-500">
-                                                {b.nombre?.[0]?.toUpperCase() ?? "?"}
+                                                {b.name?.[0]?.toUpperCase() ?? "?"}
                                               </div>
                                         }
-                                        <span className="absolute -bottom-1 -right-1 bg-amber-500 text-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-black">✎</span>
+                                        <span className="absolute -bottom-1 -right-1 bg-amber-500 text-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-black">E</span>
                                     </div>
                                     <input type="text"
-                                        value={editNombres[b.id] ?? b.nombre}
-                                        onChange={e => setEditNombres(p => ({ ...p, [b.id]: e.target.value }))}
-                                        onBlur={() => handleGuardarNombre(b.id)}
+                                        value={editNames[b.id] ?? b.name}
+                                        onChange={e => setEditNames(p => ({ ...p, [b.id]: e.target.value }))}
+                                        onBlur={() => handleSaveName(b.id)}
                                         className="flex-1 bg-zinc-800 text-white text-sm p-2 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none" />
-                                    <button onClick={() => handleBorrarBarbero(b.id)}
+                                    <button onClick={() => handleDeleteBarber(b.id)}
                                         className={`flex-shrink-0 px-3 h-8 rounded-full border flex items-center justify-center transition-all text-xs font-bold
                                             ${confirmDelete === b.id
                                                 ? "bg-red-500 border-red-500 text-white animate-pulse"
                                                 : "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"}`}>
-                                        {confirmDelete === b.id ? "¿Seguro?" : "🗑"}
+                                        {confirmDelete === b.id ? "Sure?" : "Del"}
                                     </button>
                                 </div>
                             ))}
@@ -250,64 +272,64 @@ export default function NewService() {
                             <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
                                 onChange={e => {
                                     const file = e.target.files?.[0]
-                                    if (file && editandoId) handleCambiarFoto(editandoId, file)
+                                    if (file && editingId) handleChangePhoto(editingId, file)
                                     e.target.value = ""
                                 }} />
 
                             <div className="border-t border-zinc-800 pt-4">
-                                <p className="text-zinc-400 text-xs font-bold uppercase mb-2">Nuevo barbero</p>
+                                <p className="text-zinc-400 text-xs font-bold uppercase mb-2">New barber</p>
                                 <div className="flex gap-2">
-                                    <input type="text" value={nuevoBarber}
-                                        onChange={e => setNuevoBarber(e.target.value)}
-                                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAñadirBarbero() } }}
-                                        placeholder="Nombre..."
+                                    <input type="text" value={newBarberName}
+                                        onChange={e => setNewBarberName(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddBarber() } }}
+                                        placeholder="Name..."
                                         className="flex-1 bg-zinc-900 text-white text-sm p-3 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none" />
-                                    <button onClick={handleAñadirBarbero}
-                                        disabled={!nuevoBarber.trim()}
+                                    <button onClick={handleAddBarber}
+                                        disabled={!newBarberName.trim()}
                                         className="bg-amber-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-black font-black px-5 rounded-xl text-lg">+</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {modalTab === "servicios" && (
+                    {modalTab === "services" && (
                         <div className="space-y-2">
-                            {servicios.map(s => (
-                                <div key={s.nombre}
+                            {services.map(s => (
+                                <div key={s.name}
                                     className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
-                                    <span className="flex-1 text-white text-sm font-bold truncate">{s.nombre}</span>
+                                    <span className="flex-1 text-white text-sm font-bold truncate">{s.name}</span>
                                     <input type="number"
-                                        value={editPrecios[s.nombre] ?? String(s.precio)}
-                                        onChange={e => setEditPrecios(p => ({ ...p, [s.nombre]: e.target.value }))}
-                                        onBlur={() => handleGuardarPrecio(s.nombre)}
+                                        value={editPrices[s.name] ?? String(s.price)}
+                                        onChange={e => setEditPrices(p => ({ ...p, [s.name]: e.target.value }))}
+                                        onBlur={() => handleSavePrice(s.name)}
                                         className="w-16 bg-zinc-800 text-amber-500 text-sm p-2 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none text-center font-black" />
                                     <span className="text-zinc-500 text-xs font-bold">€</span>
-                                    <button onClick={() => handleBorrarServicio(s.nombre)}
+                                    <button onClick={() => handleDeleteService(s.name)}
                                         className={`flex-shrink-0 px-3 h-8 rounded-full border flex items-center justify-center transition-all text-xs font-bold
-                                            ${confirmDelete === s.nombre
+                                            ${confirmDelete === s.name
                                                 ? "bg-red-500 border-red-500 text-white animate-pulse"
                                                 : "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"}`}>
-                                        {confirmDelete === s.nombre ? "¿Seguro?" : "🗑"}
+                                        {confirmDelete === s.name ? "Sure?" : "Del"}
                                     </button>
                                 </div>
                             ))}
 
                             <div className="border-t border-zinc-800 pt-4">
-                                <p className="text-zinc-400 text-xs font-bold uppercase mb-2">Nuevo servicio</p>
+                                <p className="text-zinc-400 text-xs font-bold uppercase mb-2">New service</p>
                                 <div className="flex gap-2 mb-2">
-                                    <input type="text" value={nuevoServicio.nombre}
-                                        onChange={e => setNuevoServicio(p => ({ ...p, nombre: e.target.value }))}
-                                        placeholder="Nombre..."
+                                    <input type="text" value={newService.name}
+                                        onChange={e => setNewService(p => ({ ...p, name: e.target.value }))}
+                                        placeholder="Name..."
                                         className="flex-1 bg-zinc-900 text-white text-sm p-3 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none" />
-                                    <input type="number" value={nuevoServicio.precio}
-                                        onChange={e => setNuevoServicio(p => ({ ...p, precio: e.target.value }))}
+                                    <input type="number" value={newService.price}
+                                        onChange={e => setNewService(p => ({ ...p, price: e.target.value }))}
                                         placeholder="€"
                                         className="w-20 bg-zinc-900 text-amber-500 text-sm p-3 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none text-center font-black" />
                                 </div>
-                                <button onClick={handleAñadirServicio}
-                                    disabled={!nuevoServicio.nombre.trim() || nuevoServicio.precio === ""}
+                                <button onClick={handleAddService}
+                                    disabled={!newService.name.trim() || newService.price === ""}
                                     className="w-full bg-amber-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-black font-black py-3 rounded-xl text-sm uppercase">
-                                    + Añadir servicio
+                                    + Add service
                                 </button>
                             </div>
                         </div>
@@ -327,7 +349,7 @@ export default function NewService() {
                 </h2>
                 <button type="button" onClick={() => setShowModal(true)}
                     className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-full hover:text-amber-500 transition-colors">
-                    ⚙️ Gestionar
+                    Gestionar
                 </button>
             </div>
 
@@ -338,22 +360,22 @@ export default function NewService() {
                 <div className="space-y-2">
                     <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Barbero</label>
                     <div className="flex gap-3 flex-wrap">
-                        {barberos.map(b => (
-                            <div key={b.id} onClick={() => setSelectedBarber(b.nombre)}
+                        {barbers.map(b => (
+                            <div key={b.id} onClick={() => setSelectedBarber(b.name)}
                                 className={`flex flex-col items-center gap-1 cursor-pointer transition-all duration-200
-                                    ${selectedBarber === b.nombre ? "scale-105" : "opacity-60 hover:opacity-90"}`}>
+                                    ${selectedBarber === b.name ? "scale-105" : "opacity-60 hover:opacity-90"}`}>
                                 <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors
-                                    ${selectedBarber === b.nombre ? "border-amber-500" : "border-zinc-700"}`}>
-                                    {fotos[b.id]
-                                        ? <img src={fotos[b.id]} className="w-full h-full object-cover" />
+                                    ${selectedBarber === b.name ? "border-amber-500" : "border-zinc-700"}`}>
+                                    {photos[b.id]
+                                        ? <img src={photos[b.id]} className="w-full h-full object-cover" />
                                         : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-2xl font-black text-amber-500">
-                                            {b.nombre?.[0]?.toUpperCase() ?? "?"}
+                                            {b.name?.[0]?.toUpperCase() ?? "?"}
                                           </div>
                                     }
                                 </div>
                                 <span className={`text-[10px] font-black transition-colors
-                                    ${selectedBarber === b.nombre ? "text-amber-500" : "text-zinc-500"}`}>
-                                    {b.nombre}
+                                    ${selectedBarber === b.name ? "text-amber-500" : "text-zinc-500"}`}>
+                                    {b.name}
                                 </span>
                             </div>
                         ))}
@@ -368,8 +390,8 @@ export default function NewService() {
                             onChange={e => setSelectedService(e.target.value)}
                             className="w-full font-bold text-white rounded-xl p-3 bg-zinc-900 border border-zinc-800 outline-none focus:border-amber-500 appearance-none">
                             <option value="">Selecciona...</option>
-                            {servicios.map(s => (
-                                <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
+                            {services.map(s => (
+                                <option key={s.name} value={s.name}>{s.name}</option>
                             ))}
                         </select>
                     </div>
@@ -389,7 +411,7 @@ export default function NewService() {
                             className="w-full font-bold text-white rounded-xl p-3 bg-zinc-800 border border-zinc-700 outline-none focus:border-amber-500" />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Teléfono</label>
+                        <label className="text-amber-500 text-[10px] font-black uppercase ml-1">Telefono</label>
                         <input name="phone" type="number"
                             defaultValue={searchParams.get("phone") || ""}
                             className="w-full font-bold text-white rounded-xl p-3 bg-zinc-800 border border-zinc-700 outline-none focus:border-amber-500" />
@@ -398,7 +420,7 @@ export default function NewService() {
 
                 <button type="submit"
                     className="mt-4 bg-amber-600 hover:bg-amber-500 p-4 text-black font-black rounded-xl uppercase transition-all shadow-lg shadow-amber-900/20 active:scale-95">
-                    Confirmar y Registrar Pago ✓
+                    Confirmar y Registrar Pago
                 </button>
 
                 <Link to="/" className="text-center text-zinc-500 text-xs font-bold hover:text-white uppercase">
