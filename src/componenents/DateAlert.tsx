@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { getDatesList } from "../services/serviceDate";
 import { toast } from "react-toastify";
 
-// ✅ Sonido generado por Web Audio API — sin depender de archivo externo
+// Sonido generado por Web Audio API — sin depender de archivo externo
 const playNotificationSound = () => {
     try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -40,7 +40,7 @@ export function useCitaAlert() {
     const checkNewDates = useCallback(async () => {
         try {
             const dates = await getDatesList();
-            // ✅ Citas pendientes = las que NO están pagadas
+            // Citas pendientes = las que NO están pagadas
             const pendientes = dates.filter(c => !c.isPaid).length;
             setPendientesCount(pendientes);
 
@@ -50,16 +50,16 @@ export function useCitaAlert() {
                 return;
             }
 
-            // ✅ Nueva cita detectada
+            // Nueva cita detectada
             if (pendientes > lastCount.current) {
                 const nuevas = pendientes - lastCount.current;
 
                 // Sonido
                 playNotificationSound();
 
-                // Toast con estilo
+                // Toast con estilo — icon como JSX (type-safe)
                 toast.info(
-                    `💈 ${nuevas > 1 ? `${nuevas} NUEVAS CITAS` : "¡NUEVA CITA RECIBIDA!"}`,
+                    `💈 \( {nuevas > 1 ? ` \){nuevas} NUEVAS CITAS` : "¡NUEVA CITA RECIBIDA!"}`,
                     {
                         position: "top-right",
                         autoClose: 5000,
@@ -70,7 +70,7 @@ export function useCitaAlert() {
                             fontWeight: 'bold',
                             borderRadius: '1rem'
                         },
-                        icon: "🔥"
+                        icon: <span>🔥</span>   // ← Cambio clave aquí
                     }
                 );
             }
