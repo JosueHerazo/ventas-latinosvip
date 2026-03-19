@@ -31,10 +31,7 @@ export default function VentasTotales() {
                 : raw;
             const d = new Date(clean);
             if (isNaN(d.getTime())) return false;
-
-            // ✅ Sin filtro isPaid — todo en /api/service ya está cobrado
-            return d.getMonth() === selectedMonth &&
-                   d.getFullYear() === selectedYear;
+            return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
         });
     }, [services, selectedMonth, selectedYear]);
 
@@ -88,7 +85,9 @@ export default function VentasTotales() {
                 className="bg-amber-500 p-8 rounded-[2.5rem] mb-10 flex flex-col md:flex-row justify-between items-center shadow-2xl shadow-amber-500/10"
             >
                 <div>
-                    <p className="text-black font-black uppercase text-[10px] tracking-[0.2em] mb-1">Total Recaudado en el Periodo</p>
+                    <p className="text-black font-black uppercase text-[10px] tracking-[0.2em] mb-1">
+                        Total Recaudado en el Periodo
+                    </p>
                     <p className="text-6xl font-black text-black tracking-tighter">
                         {formatCurrency(totalMes)}
                     </p>
@@ -108,18 +107,30 @@ export default function VentasTotales() {
                     filteredData.map(c => {
                         const ausente = esAusente(c.createdAt);
                         return (
-                            <div key={c.id}
-                                className={`bg-zinc-900 p-6 rounded-3xl border ${ausente ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'} flex flex-wrap justify-between items-center gap-4 transition-all hover:border-zinc-700`}>
+                            <div
+                                key={c.id}
+                                className={`bg-zinc-900 p-6 rounded-3xl border ${
+                                    ausente ? 'border-red-900/40 bg-red-950/10' : 'border-zinc-800'
+                                } flex flex-wrap justify-between items-center gap-4 transition-all hover:border-zinc-700`}
+                            >
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${ausente ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-amber-500'}`}>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${
+                                        ausente ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-amber-500'
+                                    }`}>
                                         {ausente ? '!' : c.client[0]}
                                     </div>
                                     <div>
                                         <h4 className="text-white font-black uppercase flex items-center gap-2">
                                             {c.client}
-                                            {ausente && <span className="text-[8px] bg-red-600 px-2 py-0.5 rounded text-white italic tracking-tighter">Ausente +20 días</span>}
+                                            {ausente && (
+                                                <span className="text-[8px] bg-red-600 px-2 py-0.5 rounded text-white italic tracking-tighter">
+                                                    Ausente +20 días
+                                                </span>
+                                            )}
                                         </h4>
-                                        <p className="text-zinc-500 text-[10px] font-bold uppercase">Atendido por: {c.barber}</p>
+                                        <p className="text-zinc-500 text-[10px] font-bold uppercase">
+                                            Atendido por: {c.barber}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -143,3 +154,7 @@ export default function VentasTotales() {
                         );
                     })
                 )}
+            </div>
+        </div>
+    );
+}
