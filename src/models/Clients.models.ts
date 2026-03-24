@@ -1,5 +1,4 @@
 import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
-import Date from './DateList.models';
 import Service from './service.model';
 
 @Table({
