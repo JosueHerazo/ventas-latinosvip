@@ -1,5 +1,4 @@
 import multer from "multer"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
 import { v2 as cloudinary } from "cloudinary"
 
 cloudinary.config({
@@ -8,17 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!
 })
 
-const storage = new CloudinaryStorage({
-    cloudinary,
-    params: async (req, file) => {
-        const isVideo = file.mimetype.startsWith("video")
+const storage = multer.memoryStorage()
 
-        return {
-            folder: "trabajos",
-            resource_type: isVideo ? "video" : "image"
-        }
-    }
-})
-
-export const uploadWork= multer({ storage })
+export const uploadWork = multer({ storage })
 export { cloudinary }
