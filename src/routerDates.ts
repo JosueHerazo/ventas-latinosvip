@@ -2,7 +2,8 @@ import { Router } from "express"
 import { body, param} from "express-validator"
 import {  createDate, deleteDate, getDates, getDateById, updateAppointmentStatus, UpdateDate } from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
-
+import { uploadWork } from "./config/cloudinaryWorks"
+import { getWorks, createWorks, deleteWorks } from "../src/handlers/works.Handlers"
 const router = Router()
 
 //  Routing
@@ -47,6 +48,15 @@ router.delete("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors, 
     deleteDate
+)
+router.get("/works", getWorks)
+router.post("/works",
+    uploadWork.single("archivo"),
+    createWorks)
+router.delete("/works/:id",
+    param("id").isInt().withMessage("ID no válido"),
+    handlerInputErrors,
+    deleteWorks
 )
 
 
