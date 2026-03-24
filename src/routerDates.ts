@@ -3,7 +3,7 @@ import { body, param} from "express-validator"
 import {  createDate, deleteDate, getDates, getDateById, updateAppointmentStatus, UpdateDate } from "./handlers/date"
 import { handlerInputErrors } from "./middleware"
 import { uploadWork } from "./config/cloudinaryWorks"
-import { getWorks, createWorks, deleteWorks } from "../src/handlers/works.Handlers"
+import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers"
 const router = Router()
 
 //  Routing
