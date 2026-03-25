@@ -133,6 +133,7 @@ export const saveBarberos = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Error al guardar barberos" })
     }
 }
+
 export const getBarberAvailability = async (req: Request, res: Response) => {
     try {
         const { barber } = req.params;
@@ -141,12 +142,12 @@ export const getBarberAvailability = async (req: Request, res: Response) => {
             where: {
                 barber: { [Op.iLike]: `%${barber.trim()}%` }
             },
-            attributes: ['dateList', 'duration']
+            attributes: ['dateList']   // ← Quitamos "duration" porque no existe
         });
 
         const busySlots = appointments.map(app => ({
             dateList: app.dataValues.dateList,
-            duration: Number(app.dataValues.duration) || 30
+            duration: 30   // valor por defecto
         }));
 
         res.json({ data: busySlots });

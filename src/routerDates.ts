@@ -2,7 +2,7 @@ import { Router } from "express"
 import { body, param } from "express-validator"
 import { handlerInputErrors } from "./middleware"
 
-// Importamos solo lo que ya tienes funcionando
+// Handlers de citas y barberos
 import {
     getDates,
     createDate,
@@ -15,13 +15,13 @@ import {
     getBarberAvailability,
 } from "./handlers/date"
 
-// Trabajos comentados temporalmente para evitar conflicto
-// import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers"
-// import { uploadWork } from "./config/cloudinaryWorks"
+// Handlers de trabajos
+import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers"
+import { uploadWork } from "./config/cloudinaryWorks"
 
 const router = Router()
 
-// ==================== RUTAS ESPECÍFICAS - DEBEN IR ANTES DE :id ====================
+// ====================== RUTAS ESPECÍFICAS (DEBEN IR ANTES DE :id) ======================
 
 // Barberos
 router.get("/barberos", getBarberos)
@@ -38,7 +38,16 @@ router.get("/availability/:barber",
     getBarberAvailability
 )
 
-// ==================== CRUD DE CITAS ====================
+// Trabajos (Works) - Esta ruta debe ir ANTES de :id
+router.get("/works", getWorks)
+router.post("/works", uploadWork.single("archivo"), createWorks)
+router.delete("/works/:id", 
+    param("id").isInt().withMessage("ID no válido"),
+    handlerInputErrors, 
+    deleteWorks
+)
+
+// ====================== CRUD DE CITAS ======================
 
 router.get("/", getDates)
 
@@ -54,7 +63,7 @@ router.post("/",
     createDate
 )
 
-// RUTAS CON :id → SIEMPRE AL FINAL
+// Rutas con :id → SIEMPRE AL FINAL
 router.get("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, getDateById)
 router.put("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, UpdateDate)
 router.patch("/:id", param("id").isInt().withMessage("ID no válido"), handlerInputErrors, updateAppointmentStatus)
