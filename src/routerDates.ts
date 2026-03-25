@@ -11,7 +11,9 @@ import {
     updateAppointmentStatus,
     deleteDate,
     getBarberos,
-    saveBarberos,
+    addBarbero,
+    updateBarbero,
+    deleteBarbero,
     getBarberAvailability,
 } from "./handlers/date"
 
@@ -21,29 +23,45 @@ import { uploadWork } from "./config/cloudinaryWorks"
 
 const router = Router()
 
-// ====================== RUTAS ESPECÍFICAS (DEBEN IR ANTES DE :id) ======================
+// ====================== RUTAS ESPECÍFICAS (ANTES DE :id) ======================
 
 // Barberos
 router.get("/barberos", getBarberos)
-router.post("/barberos", 
-    body("barberos").isArray().withMessage("Debe ser un array de barberos"),
-    handlerInputErrors, 
-    saveBarberos
+
+router.post("/barberos",
+    body("nombre").notEmpty().withMessage("El nombre es obligatorio").trim(),
+    body("foto").optional().isString().trim(),
+    handlerInputErrors,
+    addBarbero
+)
+
+router.put("/barberos/:id",
+    param("id").isInt().withMessage("ID no válido"),
+    body("nombre").optional().isString().trim(),
+    body("foto").optional().isString().trim(),
+    handlerInputErrors,
+    updateBarbero
+)
+
+router.delete("/barberos/:id",
+    param("id").isInt().withMessage("ID no válido"),
+    handlerInputErrors,
+    deleteBarbero
 )
 
 // Availability
-router.get("/availability/:barber", 
+router.get("/availability/:barber",
     param("barber").notEmpty().withMessage("Barbero requerido").trim(),
-    handlerInputErrors, 
+    handlerInputErrors,
     getBarberAvailability
 )
 
-// Trabajos (Works) - Esta ruta debe ir ANTES de :id
+// Trabajos (Works)
 router.get("/works", getWorks)
 router.post("/works", uploadWork.single("archivo"), createWorks)
-router.delete("/works/:id", 
+router.delete("/works/:id",
     param("id").isInt().withMessage("ID no válido"),
-    handlerInputErrors, 
+    handlerInputErrors,
     deleteWorks
 )
 
@@ -51,7 +69,7 @@ router.delete("/works/:id",
 
 router.get("/", getDates)
 
-router.post("/", 
+router.post("/",
     body("service").notEmpty().withMessage("El servicio es requerido"),
     body("price").notEmpty().isNumeric().custom(v => parseFloat(v) >= 0),
     body("barber").isString().notEmpty().trim(),
@@ -64,9 +82,9 @@ router.post("/",
 )
 
 // Rutas con :id → SIEMPRE AL FINAL
-router.get("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, getDateById)
-router.put("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, UpdateDate)
-router.patch("/:id", param("id").isInt().withMessage("ID no válido"), handlerInputErrors, updateAppointmentStatus)
-router.delete("/:id",param("id").isInt().withMessage("ID no válido"), handlerInputErrors, deleteDate)
+router.get("/:id",    param("id").isInt().withMessage("ID no válido"), handlerInputErrors, getDateById)
+router.put("/:id",    param("id").isInt().withMessage("ID no válido"), handlerInputErrors, UpdateDate)
+router.patch("/:id",  param("id").isInt().withMessage("ID no válido"), handlerInputErrors, updateAppointmentStatus)
+router.delete("/:id", param("id").isInt().withMessage("ID no válido"), handlerInputErrors, deleteDate)
 
 export default router
