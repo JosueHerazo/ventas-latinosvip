@@ -107,51 +107,91 @@ export const getBarberos = async (req: Request, res: Response) => {
     }
 }
 
-export const saveBarberos = async (req: Request, res: Response) => {
+// POST /barberos — agrega UN barbero con nombre y foto
+export const addBarbero = async (req: Request, res: Response) => {
     try {
-        const { barberos } = req.body
+        const { nombre, foto } = req.body
 
-        if (!Array.isArray(barberos)) {
-            return res.status(400).json({ error: "barberos debe ser un array" })
+        if (!nombre || typeof nombre !== 'string' || nombre.trim() === '') {
+            return res.status(400).json({ error: "El nombre es obligatorio" })
         }
 
-        
-        const nuevosBarberos = barberos
-            .filter((nombre): nombre is string => typeof nombre === 'string' && nombre.trim() !== '')
-            .map(nombre => ({ nombre: nombre.trim() }))
-
-        await Barbero.bulkCreate(nuevosBarberos)
-
-        res.json({ 
-            success: true, 
-            message: "Barberos guardados correctamente",
-            data: nuevosBarberos 
+        const existe = await Barbero.findOne({
+            where: { nombre: nombre.trim() }
         })
+        if (existe) {
+            return res.status(409).json({ error: "Ya existe un barbero con ese nombre" })
+        }
+
+        const nuevo = await Barbero.create({
+            nombre: nombre.trim(),
+            foto: foto?.trim() ?? null
+        })
+
+        res.status(201).json({ success: true, data: nuevo })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ error: "Error al guardar barberos" })
+        res.status(500).json({ error: "Error al agregar barbero" })
     }
 }
 
+// PUT /barberos/:id — edita nombre o foto de un barbero existente
+export const updateBarbero = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const { nombre, foto } = req.body
+
+        const barbero = await Barbero.findByPk(id)
+        if (!barbero) return res.status(404).json({ error: "Barbero no encontrado" })
+
+        await barbero.update({
+            ...(nombre && { nombre: nombre.trim() }),
+            ...(foto !== undefined && { foto: foto?.trim() ?? null })
+        })
+
+        res.json({ success: true, data: barbero })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Error al actualizar barbero" })
+    }
+}
+
+// DELETE /barberos/:id — elimina un barbero por id
+export const deleteBarbero = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const barbero = await Barbero.findByPk(id)
+        if (!barbero) return res.status(404).json({ error: "Barbero no encontrado" })
+
+        await barbero.destroy()
+        res.json({ success: true, message: "Barbero eliminado correctamente" })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Error al eliminar barbero" })
+    }
+}
+
+// ====================== DISPONIBILIDAD ======================
+
 export const getBarberAvailability = async (req: Request, res: Response) => {
     try {
-        const { barber } = req.params;
+        const { barber } = req.params
 
         const appointments = await Datelist.findAll({
             where: {
                 barber: { [Op.iLike]: `%${barber.trim()}%` }
             },
-            attributes: ['dateList']   // ← Quitamos "duration" porque no existe
-        });
+            attributes: ['dateList']
+        })
 
         const busySlots = appointments.map(app => ({
             dateList: app.dataValues.dateList,
-            duration: 30   // valor por defecto
-        }));
+            duration: 30
+        }))
 
-        res.json({ data: busySlots });
+        res.json({ data: busySlots })
     } catch (error) {
-        console.error("❌ Error en getBarberAvailability:", error);
-        res.status(500).json({ error: "Error en el servidor" });
+        console.error("❌ Error en getBarberAvailability:", error)
+        res.status(500).json({ error: "Error en el servidor" })
     }
-};
+}
