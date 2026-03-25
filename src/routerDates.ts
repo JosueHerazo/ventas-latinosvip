@@ -1,64 +1,63 @@
 import { Router } from "express"
-import { body, param} from "express-validator"
-import {  createDate, deleteDate, getDates, getDateById, updateAppointmentStatus, UpdateDate } from "./handlers/date"
+import { body, param } from "express-validator"
 import { handlerInputErrors } from "./middleware"
-import { uploadWork } from "./config/cloudinaryWorks"
-import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers"
+
+// Importamos solo lo que ya tienes funcionando
+import {
+    getDates,
+    createDate,
+    getDateById,
+    UpdateDate,
+    updateAppointmentStatus,
+    deleteDate,
+    getBarberos,
+    saveBarberos,
+    getBarberAvailability,
+} from "./handlers/date"
+
+// Trabajos comentados temporalmente para evitar conflicto
+// import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers"
+// import { uploadWork } from "./config/cloudinaryWorks"
+
 const router = Router()
 
-//  Routing
+// ==================== RUTAS ESPECÍFICAS - DEBEN IR ANTES DE :id ====================
 
-router.get("/",
-    getDates
+// Barberos
+router.get("/barberos", getBarberos)
+router.post("/barberos", 
+    body("barberos").isArray().withMessage("Debe ser un array de barberos"),
+    handlerInputErrors, 
+    saveBarberos
 )
 
-router.post("/",
-     // validacion
-    body("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"),
-    body("price")
-    .notEmpty().withMessage("El valor del producto no puede ir vacio")
-    .isNumeric().withMessage("El precio debe ser un número")
-    .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"),
+// Availability
+router.get("/availability/:barber", 
+    param("barber").notEmpty().withMessage("Barbero requerido").trim(),
+    handlerInputErrors, 
+    getBarberAvailability
+)
+
+// ==================== CRUD DE CITAS ====================
+
+router.get("/", getDates)
+
+router.post("/", 
+    body("service").notEmpty().withMessage("El servicio es requerido"),
+    body("price").notEmpty().isNumeric().custom(v => parseFloat(v) >= 0),
+    body("barber").isString().notEmpty().trim(),
+    body("dateList").notEmpty(),
+    body("client").notEmpty(),
+    body("phone").notEmpty(),
+    body("duration").isNumeric().notEmpty(),
     handlerInputErrors,
-    body("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(),
-    body("dateList").notEmpty().withMessage("La fecha no puede ir vacio"),
-    body("client").notEmpty().withMessage("el nombre no puede ir vacio"),
-    body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
-    body("duration").isNumeric().notEmpty().withMessage("tiempo de service"),
     createDate
 )
-router.get("/:id",
-    param("id").isInt().withMessage("ID no valido"),
-    handlerInputErrors,
-    getDateById)
-// PUT SI ENVIAS UNA PARTE LAS DEMAS PARTES DEL OBJETO SE ENVIAN VACIAS 
-router.put("/:id", 
-    param("id").isInt().withMessage("ID no valido"),
-    handlerInputErrors,
-    UpdateDate)
-// CON PATCH SE PUEDE MODIFICAR PARTES DEL OBJETO SIN QUE MODIFIQUE LAS DEMAS PARTES DEL OBJETO
 
-// con patch se envie la disponibilidad del product solo se toma del dataValue pel producto para motificar el boolean de true a false
-router.patch("/:id",
-    param("id").isInt().withMessage("ID no valido"),
-    handlerInputErrors,
-    updateAppointmentStatus)
+// RUTAS CON :id → SIEMPRE AL FINAL
+router.get("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, getDateById)
+router.put("/:id",   param("id").isInt().withMessage("ID no válido"), handlerInputErrors, UpdateDate)
+router.patch("/:id", param("id").isInt().withMessage("ID no válido"), handlerInputErrors, updateAppointmentStatus)
+router.delete("/:id",param("id").isInt().withMessage("ID no válido"), handlerInputErrors, deleteDate)
 
-router.delete("/:id",  
-    param("id").isInt().withMessage("ID no valido"),
-    handlerInputErrors, 
-    deleteDate
-)
-router.get("/works", getWorks)
-router.post("/works",
-    uploadWork.single("archivo"),
-    createWorks)
-router.delete("/works/:id",
-    param("id").isInt().withMessage("ID no válido"),
-    handlerInputErrors,
-    deleteWorks
-)
-
-
-
- export default router
+export default router
