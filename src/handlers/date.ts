@@ -115,8 +115,7 @@ export const saveBarberos = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "barberos debe ser un array" })
         }
 
-        await Barbero.destroy({ where: {} })
-
+        
         const nuevosBarberos = barberos
             .filter((nombre): nombre is string => typeof nombre === 'string' && nombre.trim() !== '')
             .map(nombre => ({ nombre: nombre.trim() }))
