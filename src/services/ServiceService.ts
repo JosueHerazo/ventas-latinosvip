@@ -121,13 +121,27 @@ export async function registerPayment(ventaData: Service) {
 }
 
 export async function archiveWeek(closeData: any) {
-    const url = `${import.meta.env.VITE_API_URL}/api/service/cierres`
-    const response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(closeData),
-        headers: { 'Content-Type': 'application/json' }
-    })
-    return await response.json()
+    const url = `${import.meta.env.VITE_API_URL}/api/service/archivar-semana`;   // ← Ruta corregida
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(closeData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            throw new Error(`HTTP ${response.status}: ${errorText || 'Error desconocido'}`);
+        }
+
+        return await response.json();
+    } catch (error: any) {
+        console.error("Error completo en archiveWeek:", error);
+        throw error;   // Para que el catch del componente lo atrape
+    }
 }
 
 export async function updateAppointmentStatus(id: number) {
