@@ -168,27 +168,44 @@ export const archivarSemana = async (req: Request, res: Response) => {
     try {
         const { barbero, totalBruto, comision50, serviciosArchivados } = req.body;
 
-        // Guardar el resumen histórico
+        if (!barbero || !Array.isArray(serviciosArchivados) || serviciosArchivados.length === 0) {
+            return res.status(400).json({ 
+                error: "Faltan datos: barbero y serviciosArchivados son requeridos" 
+            });
+        }
+
+        // Create historical record
         await WeeklyClosing.create({
             barber: barbero,
-            totalGross: totalBruto,
-            commission: comision50,
+            totalGross: Number(totalBruto),
+            commission: Number(comision50),
             servicesCount: serviciosArchivados.length,
             archivedServiceIds: serviciosArchivados.join(',')
         });
 
-        // IMPORTANTE: En lugar de isArchived, usaremos un campo isSettled (Liquidado con barbero)
-        // o simplemente filtramos por fecha en el futuro. 
-        // Si prefieres usar isArchived, asegúrate de que esté en tu modelo de Sequelize.
-        await Service.update({ isArchived: true }, {
-            where: { id: serviciosArchivados }
+        // Archive the services
+        await Service.update(
+            { isArchived: true },
+            { 
+                where: { id: serviciosArchivados }
+            }
+        );
+
+        res.json({ 
+            message: "Cierre de semana realizado con éxito",
+            barbero,
+            totalBruto,
+            comision50
         });
 
-        res.json({ msg: "Cierre completado con éxito" });
-    } catch (error) {
-        res.status(500).json({ error: "Error al archivar la semana" });
+    } catch (error: any) {
+        console.error("Error en archivarSemana:", error);
+        res.status(500).json({ 
+            error: "Error al archivar la semana",
+            details: error.message 
+        });
     }
-}
+};
 
 
 // En tu controlador de servicios (ej. getServices)
