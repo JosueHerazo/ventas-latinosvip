@@ -136,7 +136,7 @@ export const addBarbero = async (req: Request, res: Response) => {
 }
 
 // PUT /barberos/:id — edita nombre o foto de un barbero existente
-export const updateBarbero = async (req: Request, res: Response) => {
+export const updateBarberos = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
         const { nombre, foto } = req.body
@@ -157,7 +157,7 @@ export const updateBarbero = async (req: Request, res: Response) => {
 }
 
 // DELETE /barberos/:id — elimina un barbero por id
-export const deleteBarbero = async (req: Request, res: Response) => {
+export const deleteBarberos = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
         const barbero = await Barbero.findByPk(id)
@@ -169,6 +169,38 @@ export const deleteBarbero = async (req: Request, res: Response) => {
         console.error(error)
         res.status(500).json({ error: "Error al eliminar barbero" })
     }
+}
+export const saveBarberos = async (req: Request, res: Response) => {
+    try {
+        const { barberos } = req.body
+        if (!Array.isArray(barberos)) {
+            return res.status(400).json({ error: "barberos debe ser un array" })
+        }
+        const json = JSON.stringify(barberos)
+
+        const existing = await Barbero.findOne({
+            where: { service: '__barberos__' }
+        })
+
+        if (existing) {
+            await existing.update({ client: json })
+        } else {
+            await Barbero.create({
+                service:  '__barberos__',
+                price:    0,
+                barber:   '__config__',
+                dateList: new Date().toISOString(),
+                client:   json,
+                phone:    '__config__',
+                duration: 0
+            })
+        }
+        res.json({ data: barberos })
+    } catch (error) {
+        console.error("Error saveBarberos:", error)
+        res.status(500).json({ error: "Error al guardar barberos" })
+    }
+    
 }
 
 // ====================== DISPONIBILIDAD ======================
