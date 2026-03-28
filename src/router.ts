@@ -23,7 +23,7 @@ router.post("/",
     body("phone").notEmpty().withMessage("El telefono no puede ir vacio"),
     createProduct
 )
-router.post('/api/cierres', archivarSemana);
+router.post('/archivar-semana', archivarSemana);
 router.get("/:id",
     param("id").isInt().withMessage("ID no valido"),
     handlerInputErrors,
