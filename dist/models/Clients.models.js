@@ -25,11 +25,11 @@ __decorate([
 ], Client.prototype, "name", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
-        type: sequelize_typescript_1.DataType.INTEGER(), // Guardamos como string para evitar problemas de ceros iniciales
+        type: sequelize_typescript_1.DataType.STRING(), // Guardamos como string para evitar problemas de ceros iniciales
         allowNull: false,
         unique: true
     }),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], Client.prototype, "password", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
@@ -51,7 +51,6 @@ __decorate([
     (0, sequelize_typescript_1.Column)({
         type: sequelize_typescript_1.DataType.BOOLEAN(), // Guardamos como string para evitar problemas de ceros iniciales
         allowNull: false,
-        unique: true
     }),
     __metadata("design:type", Boolean)
 ], Client.prototype, "terms", void 0);

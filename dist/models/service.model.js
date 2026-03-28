@@ -45,9 +45,9 @@ __decorate([
 ], Service.prototype, "client", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
-        type: sequelize_typescript_1.DataType.BIGINT() // Use BIGINT because phone numbers exceed standard INTEGER limits
+        type: sequelize_typescript_1.DataType.STRING() // Use BIGINT because phone numbers exceed standard INTEGER limits
     }),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], Service.prototype, "phone", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({

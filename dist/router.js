@@ -9,8 +9,11 @@ const router = (0, express_1.Router)();
 router.get("/", service_1.getProducts);
 router.post("/", 
 //validacion
-(0, express_validator_1.body)("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"), (0, express_validator_1.body)("price").isNumeric().withMessage("Valor no valido").notEmpty().withMessage("El valor del producto no ir vacio").custom(value => value > 0).withMessage("Precio no valido"), middleware_1.handlerInputErrors, (0, express_validator_1.body)("barber").notEmpty().withMessage("El nombre del barbero no puede ir vacio"), (0, express_validator_1.body)("client").notEmpty().withMessage("el nombre no puede ir vacio"), (0, express_validator_1.body)("phone").notEmpty().withMessage("El telefono no puede ir vacio"), service_1.createProduct);
-router.post('/api/cierres', service_1.archivarSemana);
+(0, express_validator_1.body)("service").notEmpty().withMessage("El nombre del servicio no puede ir vacio"), (0, express_validator_1.body)("price")
+    .notEmpty().withMessage("El valor del producto no puede ir vacio")
+    .isNumeric().withMessage("El precio debe ser un número")
+    .custom(value => parseFloat(value) >= 0).withMessage("Precio no valido"), middleware_1.handlerInputErrors, (0, express_validator_1.body)("barber").isString().notEmpty().withMessage("El nombre del barbero no puede ir vacio").trim(), (0, express_validator_1.body)("client").notEmpty().withMessage("el nombre no puede ir vacio"), (0, express_validator_1.body)("phone").notEmpty().withMessage("El telefono no puede ir vacio"), service_1.createProduct);
+router.post('/archivar-semana', service_1.archivarSemana);
 router.get("/:id", (0, express_validator_1.param)("id").isInt().withMessage("ID no valido"), middleware_1.handlerInputErrors, service_1.getProductById);
 // PUT SI ENVIAS UNA PARTE LAS DEMAS PARTES DEL OBJETO SE ENVIAN VACIAS 
 router.put("/:id", (0, express_validator_1.param)("id").isInt().withMessage("ID no valido"), middleware_1.handlerInputErrors, service_1.UpdateProduct);

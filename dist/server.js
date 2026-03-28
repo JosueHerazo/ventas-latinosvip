@@ -12,7 +12,7 @@ const routerDates_1 = __importDefault(require("./routerDates"));
 async function connectDB() {
     try {
         await db_1.default.authenticate();
-        db_1.default.sync({ alter: true }); // Sincroniza los modelos con la base de datos
+        db_1.default.sync(); // Sincroniza los modelos con la base de datos
         console.log("Conexion exitosa a la DB");
     }
     catch (error) {
@@ -25,7 +25,6 @@ const server = (0, express_1.default)();
 const whitelist = [
     process.env.FRONTEND_URL, // Asegúrate que en Render esto sea https://ventas-latinosvip-frontend-nu.vercel.app
     process.env.FRONTEND_URL_DATE,
-    // "https://localhost:5173"
 ];
 const corsOptions = {
     origin: function (origin, callback) {
@@ -42,5 +41,6 @@ server.use(express_1.default.json());
 server.use((0, morgan_1.default)("dev"));
 server.use("/api/service", router_1.default);
 server.use("/api/date", routerDates_1.default);
+// server.use("/api/date/works", routerDates)
 exports.default = server;
 //# sourceMappingURL=server.js.map

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = __importDefault(require("./server"));
 const colors_1 = __importDefault(require("colors"));
+require("reflect-metadata");
 const port = process.env.PORT || 4000;
 server_1.default.listen(port, () => {
     console.log(colors_1.default.bgMagenta.bold(`REST API en el puerto ${port}`));

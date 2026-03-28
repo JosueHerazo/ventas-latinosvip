@@ -5,7 +5,7 @@ declare class Service extends Model {
     price: number;
     barber: string;
     client: string;
-    phone: number;
+    phone: string;
     isPaid: boolean;
     clientId: number;
     clientData: Client;
