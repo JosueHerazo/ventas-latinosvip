@@ -11,37 +11,83 @@ import {
     updateAppointmentStatus,
     deleteDate,
     getBarberos,
-    saveBarberos,   
-    updateBarberos,  
-    deleteBarberos,      // ← Cambiado
+    addBarbero,      // ← POST /barberos/add  (crea en tabla barberos)
+    saveBarberos,    // ← POST /barberos      (legado JSON sentinel — mantener por compatibilidad)
+    updateBarberos,
+    deleteBarberos,
     getBarberAvailability,
 } from "./handlers/date";
 
-import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers";  // ← Importa desde date.ts
+import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers";
 import { uploadWork } from "./config/cloudinaryWorks";
 
 const router = Router();
 
-// Barberos
+// ── Barberos ──────────────────────────────────────────────────────────────────
 router.get("/barberos", getBarberos);
-router.post("/barberos", saveBarberos);   
-router.put("/barberos/:id", updateBarberos);// ← Usa saveBarberos
-router.delete("/barberos/:id", deleteBarberos); // ← Ruta corregida
-// Availability
-router.get("/availability/:barber", getBarberAvailability);
 
-// Trabajos (IMPORTANTE)
+// Ruta nueva: crea un barbero real en la tabla `barberos`
+router.post(
+    "/barberos/add",
+    body("nombre").notEmpty().trim().withMessage("El nombre es obligatorio"),
+    handlerInputErrors,
+    addBarbero
+);
+
+// Ruta legado: guarda JSON en sentinel de la tabla `dates` (puede mantenerse o quitarse)
+router.post("/barberos", saveBarberos);
+
+router.put(
+    "/barberos/:id",
+    param("id").notEmpty(),
+    handlerInputErrors,
+    updateBarberos
+);
+
+router.delete(
+    "/barberos/:id",
+    param("id").notEmpty(),
+    handlerInputErrors,
+    deleteBarberos
+);
+
+// ── Disponibilidad ────────────────────────────────────────────────────────────
+router.get(
+    "/availability/:barber",
+    param("barber").notEmpty().trim(),
+    handlerInputErrors,
+    getBarberAvailability
+);
+
+// ── Trabajos ──────────────────────────────────────────────────────────────────
 router.get("/trabajos", getWorks);
-router.post("/trabajos", uploadWork.single("archivo"), createWorks);   // ← Ruta correcta
-router.delete("/trabajos/:id", deleteWorks);
+router.post("/trabajos", uploadWork.single("archivo"), createWorks);
+router.delete(
+    "/trabajos/:id",
+    param("id").isInt().withMessage("ID no válido"),
+    handlerInputErrors,
+    deleteWorks
+);
 
-// CRUD Citas
+// ── CRUD Citas ────────────────────────────────────────────────────────────────
 router.get("/", getDates);
-router.post("/", createDate);
+router.post(
+    "/",
+    body("service").notEmpty(),
+    body("price").notEmpty().isNumeric(),
+    body("barber").isString().notEmpty().trim(),
+    body("dateList").notEmpty(),
+    body("client").notEmpty(),
+    body("phone").notEmpty(),
+    body("duration").isNumeric().notEmpty(),
+    handlerInputErrors,
+    createDate
+);
 
-router.get("/:id", getDateById);
-router.put("/:id", UpdateDate);
-router.patch("/:id", updateAppointmentStatus);
-router.delete("/:id", deleteDate);
+// Rutas con ID (siempre al final para no colisionar con /barberos, /trabajos)
+router.get("/:id",    param("id").isInt(), handlerInputErrors, getDateById);
+router.put("/:id",    param("id").isInt(), handlerInputErrors, UpdateDate);
+router.patch("/:id",  param("id").isInt(), handlerInputErrors, updateAppointmentStatus);
+router.delete("/:id", param("id").isInt(), handlerInputErrors, deleteDate);
 
 export default router;

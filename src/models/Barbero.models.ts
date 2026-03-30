@@ -6,7 +6,7 @@ class Barbero extends Model {
     @Column({ type: DataType.STRING(100), allowNull: false, unique: true })
     declare nombre: string
 
-    @Column({ type: DataType.STRING(200), allowNull: true })
+    @Column({ type: DataType.STRING(), allowNull: true })
     declare foto: string // URL de Cloudinary si quieres foto
 }
 
