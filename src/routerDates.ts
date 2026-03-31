@@ -28,7 +28,7 @@ router.get("/barberos", getBarberos);
 
 // Ruta nueva: crea un barbero real en la tabla `barberos`
 router.post(
-    "/barberos/add",
+    "/barberos",
     body("nombre").notEmpty().trim().withMessage("El nombre es obligatorio"),
     handlerInputErrors,
     addBarbero
