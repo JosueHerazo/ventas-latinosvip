@@ -40,6 +40,15 @@ export const ClientSchema = object({
     name: string(),
     phone: string(),
 })
+export const DraftDateSchema = object({
+    service: string(),
+    price: number(),
+    barber: string(),
+    client: string(),
+    phone: string(),  // Cambia date() por any() para evitar el error de parseo
+    dateList: string(),
+    duration: number()// <-- AÑADE ESTO para que Valibot no rechace el formulario
+         })
 // schema de citas
 export const DateSchema = object({
     id: number(),
