@@ -31,11 +31,12 @@ router.post(
     "/barberos",
     body("nombre").notEmpty().trim().withMessage("El nombre es obligatorio"),
     handlerInputErrors,
-    addBarbero
+    addBarbero,
+    saveBarberos
 );
 
 // Ruta legado: guarda JSON en sentinel de la tabla `dates` (puede mantenerse o quitarse)
-router.post("/barberos", saveBarberos);
+// router.post("/barberos", );
 
 router.put(
     "/barberos/:id",
