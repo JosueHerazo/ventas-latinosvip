@@ -19,7 +19,7 @@ import {
 } from "./handlers/date";
 
 import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers";
-import { uploadWork } from "./config/cloudinaryWorks";
+// import { uploadWork } frñom "./config/cloudinaryWorks";
 
 const router = Router();
 
@@ -61,8 +61,8 @@ router.get(
 );
 
 // ── Trabajos ──────────────────────────────────────────────────────────────────
-router.get("/trabajos", getWorks);
-router.post("/trabajos", uploadWork.single("archivo"), createWorks);
+// router.get("/trabajos", getWorks);
+router.post("/trabajos", createWorks);
 router.delete(
     "/trabajos/:id",
     param("id").isInt().withMessage("ID no válido"),
