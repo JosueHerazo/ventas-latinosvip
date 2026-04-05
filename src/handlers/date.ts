@@ -5,7 +5,6 @@ import Client from "../models/Clients.models";
 import DateList from "../models/DateList.models";
 import Barbero from "../models/Barbero.models";
 import Trabajo from "../models/Trabajo.models";
-import { cloudinary } from "../config/cloudinaryWorks";
 
 // ====================== CITAS ======================
 export const getDates = async (req: Request, res: Response) => {
@@ -209,39 +208,30 @@ export const deleteBarberos = async (req: Request, res: Response) => {
     }
 }
 // ====================== TRABAJOS (Cloudinary) ======================
+
 export const createWorks = async (req: Request, res: Response) => {
     try {
-        const file = req.file as Express.Multer.File;
-        if (!file) {
-            return res.status(400).json({ error: "No se recibió ningún archivo" });
-        }
-
-        const result = await new Promise<any>((resolve, reject) => {
-            cloudinary.uploader.upload_stream(
-                { resource_type: "auto", folder: "trabajos" },
-                (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
-                }
-            ).end(file.buffer);
-        });
+        const { titulo, descripcion, categoria, barbero, imagen } = req.body
+        
+        if (!imagen) return res.status(400).json({ error: "No se recibió imagen" })
+        if (!titulo)  return res.status(400).json({ error: "Título obligatorio" })
 
         const trabajo = await Trabajo.create({
-            titulo: req.body.titulo || "Sin título",
-            descripcion: req.body.descripcion || "",
-            categoria: req.body.categoria || "general",
-            tipo: result.resource_type,
-            url: result.secure_url,
-            publicId: result.public_id,
-            barbero: req.body.barbero || "Sin asignar"
-        });
+            titulo,
+            descripcion: descripcion || "",
+            categoria:   categoria   || "Cortes",
+            tipo:        "image",
+            url:         imagen,   // base64 directo
+            publicId:    null,
+            barbero:     barbero   || ""
+        })
 
-        res.json({ success: true, data: trabajo });
-    } catch (error: any) {
-        console.error("Error en createWorks:", error);
-        res.status(500).json({ error: "Error al subir el trabajo", details: error.message });
+        res.json({ data: trabajo })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Error al crear trabajo" })
     }
-};
+}
 
 export const getWorks = async (req: Request, res: Response) => {
     try {
@@ -257,11 +247,7 @@ export const deleteWorks = async (req: Request, res: Response) => {
         const trabajo = await Trabajo.findByPk(req.params.id);
         if (!trabajo) return res.status(404).json({ error: "No encontrado" });
 
-        if (trabajo.publicId) {
-            await cloudinary.uploader.destroy(trabajo.publicId, {
-                resource_type: trabajo.tipo === "video" ? "video" : "image"
-            });
-        }
+    
 
         await trabajo.destroy();
         res.json({ data: "Eliminado" });

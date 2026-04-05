@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import Trabajo from "../models/Trabajo.models"
-import {cloudinary} from "../config/cloudinaryWorks"
+
 
 
 export const createWorks = async (req: Request, res: Response) => {
@@ -53,11 +53,6 @@ export const deleteWorks = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "No encontrado" })
         }
 
-        if (trabajo.publicId) {
-            await cloudinary.uploader.destroy(trabajo.publicId, {
-                resource_type: trabajo.tipo === "video" ? "video" : "image"
-            })
-        }
 
         await trabajo.destroy()
 
