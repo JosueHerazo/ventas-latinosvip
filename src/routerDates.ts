@@ -16,10 +16,11 @@ import {
     updateBarberos,
     deleteBarberos,
     getBarberAvailability,
+    createWorks,
+    deleteWorks,
+    getWorks,
 } from "./handlers/date";
 
-import { getWorks, createWorks, deleteWorks } from "./handlers/works.Handlers";
-// import { uploadWork } frñom "./config/cloudinaryWorks";
 
 const router = Router();
 
@@ -60,16 +61,16 @@ router.get(
     getBarberAvailability
 );
 
-// ── Trabajos ──────────────────────────────────────────────────────────────────
+// ── Trabajos 
 // router.get("/trabajos", getWorks);
-router.post("/trabajos", createWorks);
-router.delete(
-    "/trabajos/:id",
+router.post("/trabajos", createWorks); // ✅ BIEN
+router.get("/trabajos", getWorks);
+
+router.delete("/trabajos/:id", 
     param("id").isInt().withMessage("ID no válido"),
     handlerInputErrors,
     deleteWorks
-);
-
+)
 // ── CRUD Citas ────────────────────────────────────────────────────────────────
 router.get("/", getDates);
 router.post(
