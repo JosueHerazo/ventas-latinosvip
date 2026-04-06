@@ -37,7 +37,9 @@ const corsOptions = {
     }
 };
 server.use((0, cors_1.default)(corsOptions));
-server.use(express_1.default.json());
+// server.use(express.json())
+server.use(express_1.default.json({ limit: '10mb' }));
+server.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 server.use((0, morgan_1.default)("dev"));
 server.use("/api/service", router_1.default);
 server.use("/api/date", routerDates_1.default);
