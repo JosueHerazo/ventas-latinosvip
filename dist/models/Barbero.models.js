@@ -18,7 +18,7 @@ __decorate([
     __metadata("design:type", String)
 ], Barbero.prototype, "nombre", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING(200), allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING(), allowNull: true }),
     __metadata("design:type", String)
 ], Barbero.prototype, "foto", void 0);
 Barbero = __decorate([
