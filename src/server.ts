@@ -35,7 +35,9 @@ const corsOptions: CorsOptions = {
 }
 
 server.use(cors(corsOptions))
-server.use(express.json())
+// server.use(express.json())
+server.use(express.json({ limit: '50mb' }))
+server.use(express.urlencoded({ extended: true, limit: '50mb' }))
 server.use(morgan("dev"))
 
 server.use("/api/service", router)
