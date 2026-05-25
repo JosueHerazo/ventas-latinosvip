@@ -13,7 +13,7 @@ export default function SearchClients() {
     const [query, setQuery] = useState("")
     const [isImporting, setIsImporting] = useState(false)
 
-    const baseUrl = "https://cita-corte.netlify.app/"
+    const baseUrl = "https://latinosvip.netlify.app/"
 
     // REPARACIÓN: Definimos la función que faltaba
     const enviarWhatsApp = (cliente: string, telefono: string) => {
