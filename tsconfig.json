@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "files": [],
   "references": [
@@ -5,3 +6,23 @@
     { "path": "./tsconfig.node.json" }
   ]
 }
+=======
+
+{
+    "compilerOptions": {
+       "outDir": "./dist",
+       "rootDir": "./src",
+       "lib": ["esnext"],
+       "target": "ESNext",
+       "moduleResolution": "nodenext",
+       "module": "nodenext",
+       "strict": false,
+       "sourceMap": true,
+       "esModuleInterop": true,
+       "declaration": true,
+       "experimentalDecorators": true,
+       "emitDecoratorMetadata": true
+    },
+    "include": ["src/**/*.ts"] 
+}
+>>>>>>> 9b6e8f81de3f02a49b38278c942500b5ec6d542d
